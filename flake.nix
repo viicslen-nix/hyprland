@@ -50,7 +50,7 @@
     hyprchroma.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { nixpkgs, ... } @ inputs: {
+  outputs = {nixpkgs, ...} @ inputs: {
     # Main NixOS module for hyprland desktop environment
     nixosModules.default = import ./default.nix inputs;
   };
