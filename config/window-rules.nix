@@ -23,13 +23,18 @@ in {
         lowopacity
         highopacity
       ];
-    in lib.mkForce [
-      "match:namespace ${regexList blurred}, blur on"
-      "match:namespace ${regexList ["bar"]}, xray 1"
-      "match:namespace ${regexList blurred}, blur_popups on"
-      "match:namespace ${regexList highopacity}, ignore_alpha 0.5"
-      "match:namespace ${regexList lowopacity}, ignore_alpha 0.2"
-    ];
+    in
+      lib.mkForce [
+        "match:namespace ${regexList blurred}, blur on"
+        "match:namespace ${regexList blurred}, blur_popups on"
+        "match:namespace ${regexList highopacity}, ignore_alpha 0.5"
+        "match:namespace ${regexList lowopacity}, ignore_alpha 0.2"
+
+        # Noctalia rules
+        "match:namespace ^(noctalia-background-.*)$, blur on"
+        "match:namespace ^(noctalia-background-.*)$, blur_popups on"
+        "match:namespace ^(noctalia-background-.*)$, ignore_alpha 0.3"
+      ];
 
     workspace = [
       # smart gaps
