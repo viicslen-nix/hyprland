@@ -112,6 +112,20 @@ in {
         - Hardware cursor buffer optimizations
       '';
     };
+
+    hyprsplit = {
+      enable = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Enable hyprsplit plugin and keybinds";
+      };
+
+      package = mkOption {
+        type = types.package;
+        default = inputs.hyprsplit.packages.${pkgs.stdenv.hostPlatform.system}.hyprsplit;
+        description = "The hyprsplit package to use";
+      };
+    };
   };
 
   imports = [
