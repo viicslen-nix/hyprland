@@ -21,11 +21,11 @@ with lib; {
   '';
 
   wayland.windowManager.hyprland.settings = {
-    windowrulev2 = [
-      "move 0 0,class:(flameshot),title:(flameshot)"
-      "pin,class:(flameshot),title:(flameshot)"
-      "fullscreenstate,class:(flameshot),title:(flameshot)"
-      "float,class:(flameshot),title:(flameshot)"
+    windowrule = [
+      "match:class (flameshot), match:title (flameshot), move 0 0"
+      "match:class (flameshot), match:title (flameshot), pin on"
+      "match:class (flameshot), match:title (flameshot), fullscreenstate 3 3"
+      "match:class (flameshot), match:title (flameshot), float on"
     ];
     bind = let
       flameshot = pkgs.flameshot.override {enableWlrSupport = true;};

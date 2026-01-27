@@ -23,12 +23,12 @@ in {
         lowopacity
         highopacity
       ];
-    in [
-      "blur, ${regexList blurred}"
-      "xray 1, ${regexList ["bar"]}"
-      "blurpopups, ${regexList blurred}"
-      "ignorealpha 0.5, ${regexList highopacity}"
-      "ignorealpha 0.2, ${regexList lowopacity}"
+    in lib.mkForce [
+      "match:namespace ${regexList blurred}, blur on"
+      "match:namespace ${regexList ["bar"]}, xray 1"
+      "match:namespace ${regexList blurred}, blur_popups on"
+      "match:namespace ${regexList highopacity}, ignore_alpha 0.5"
+      "match:namespace ${regexList lowopacity}, ignore_alpha 0.2"
     ];
 
     workspace = [
@@ -36,22 +36,6 @@ in {
       "w[tv1], gapsout:0, gapsin:0"
       "f[1], gapsout:0, gapsin:0"
     ];
-
-    # # window rules
-    # windowrule = let
-    #   float = [
-    #     "org.gnome.Calculator"
-    #     "org.gnome.design.Palette"
-    #     "pavucontrol"
-    #     "pwvucontrol"
-    #     "nm-connection-editor"
-    #     "Color Picker"
-    #     "xdg-desktop-portal"
-    #     "xdg-desktop-portal-gnome"
-    #     "de.haeckerfelix.Fragments"
-    #     "com.github.Aylur.ags"
-    #   ];
-    # in ["float, ${regexList float}"];
 
     # window rules (v0.53.0 unified syntax)
     windowrule = [
@@ -65,15 +49,15 @@ in {
       "match:xwayland 1, rounding 0"
 
       # Disable shadows when only one window is present
-      "match:workspace w[t1], noshadow on"
+      "match:workspace w[t1], no_shadow on"
 
       # Throw sharing indicators away
       "match:title ^(.*is sharing (your screen|a window)\\.)$, workspace special silent"
 
       # Idle inhibit while watching videos
-      "match:class ^(mpv|.+exe|celluloid)$, idleinhibit focus"
-      "match:class ^(firefox|microsoft-edge)$, match:title ^(.*YouTube.*)$, idleinhibit focus"
-      "match:class ^(firefox|microsoft-edge)$, match:fullscreen 1, idleinhibit on"
+      "match:class ^(mpv|.+exe|celluloid)$, idle_inhibit focus"
+      "match:class ^(firefox|microsoft-edge)$, match:title ^(.*YouTube.*)$, idle_inhibit focus"
+      "match:class ^(firefox|microsoft-edge)$, match:fullscreen 1, idle_inhibit on"
 
       # Make PiP windows stay on top
       "match:title ^(Picture-in-Picture)$, float on"
@@ -83,18 +67,18 @@ in {
       "match:class ^(org.gnome.Nautilus|legcord|discord|code|libreoffice-calc)$, opacity 0.90 0.90"
 
       # GCR Prompter
-      "match:class ^(gcr-prompter)$, dimaround on"
+      "match:class ^(gcr-prompter)$, dim_around on"
 
       # Polkit
       "match:class ^(polkit-gnome-authentication-agent-1)$, float on"
       "match:class ^(polkit-gnome-authentication-agent-1)$, center on"
-      "match:class ^(polkit-gnome-authentication-agent-1)$, dimaround on"
+      "match:class ^(polkit-gnome-authentication-agent-1)$, dim_around on"
       "match:class ^(polkit-gnome-authentication-agent-1)$, size 50% 50%"
 
       # GTK File Chooser
       "match:class ^(xdg-desktop-portal-gtk)$, float on"
       "match:class ^(xdg-desktop-portal-gtk)$, center on"
-      "match:class ^(xdg-desktop-portal-gtk)$, dimaround on"
+      "match:class ^(xdg-desktop-portal-gtk)$, dim_around on"
       "match:class ^(xdg-desktop-portal-gtk)$, size <80% <80%"
 
       # 1Password
