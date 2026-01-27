@@ -59,12 +59,12 @@ modules.desktop.hyprland = {
     XDG_SESSION_TYPE = "wayland";
     GDK_BACKEND = "wayland,x11";
     MOZ_ENABLE_WAYLAND = "1";
-    # ... and more
-  };
-
-  # User-defined extra variables
-  extraGlobalVariables = {
+    
+    # Add your own custom variables
     MY_CUSTOM_VAR = "value";
+
+    # Remove default variables by setting them to null
+    SDL_VIDEODRIVER = null;
   };
 };
 ```

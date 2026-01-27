@@ -66,39 +66,15 @@ in {
     };
 
     hyprVariables = mkOption {
-      type = types.attrsOf types.str;
-      default = {
-        XDG_CURRENT_DESKTOP = "Hyprland";
-        XDG_SESSION_DESKTOP = "Hyprland";
-        XCURSOR_SIZE = mkIf stylixCursorSizeSet (builtins.toString config.stylix.cursor.size);
-      };
+      type = types.attrsOf (types.nullOr types.str);
+      default = {};
       description = "Hyprland-specific environment variables";
     };
 
     globalVariables = mkOption {
-      type = types.attrsOf types.str;
-      default = {
-        # Allow unfree packages
-        NIXPKGS_ALLOW_UNFREE = "1";
-
-        # Wayland environment
-        XDG_SESSION_TYPE = "wayland";
-        CLUTTER_BACKEND = "wayland";
-        GDK_BACKEND = "wayland,x11";
-        SDL_VIDEODRIVER = "wayland";
-        QT_QPA_PLATFORM = "wayland;xcb";
-        QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-        MOZ_ENABLE_WAYLAND = "1";
-        NIXOS_OZONE_WL = "1";
-        ELECTRON_OZONE_PLATFORM_HINT = "auto";
-      };
-      description = "Global environment variables for Wayland/Hyprland";
-    };
-
-    extraGlobalVariables = mkOption {
-      type = types.attrsOf types.str;
+      type = types.attrsOf (types.nullOr types.str);
       default = {};
-      description = "Extra global variables to set";
+      description = "Global environment variables for Wayland/Hyprland";
     };
 
     nvidia = mkOption {
@@ -135,6 +111,32 @@ in {
   ];
 
   config = mkIf cfg.enable (mkMerge [
+    {
+      modules.desktop.hyprland = {
+        hyprVariables = {
+          XDG_CURRENT_DESKTOP = "Hyprland";
+          XDG_SESSION_DESKTOP = "Hyprland";
+          XCURSOR_SIZE = mkIf stylixCursorSizeSet (builtins.toString config.stylix.cursor.size);
+        };
+
+        globalVariables = {
+          # Allow unfree packages
+          NIXPKGS_ALLOW_UNFREE = "1";
+
+          # Wayland environment
+          XDG_SESSION_TYPE = "wayland";
+          CLUTTER_BACKEND = "wayland";
+          GDK_BACKEND = "wayland,x11";
+          SDL_VIDEODRIVER = "wayland";
+          QT_QPA_PLATFORM = "wayland;xcb";
+          QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+          MOZ_ENABLE_WAYLAND = "1";
+          NIXOS_OZONE_WL = "1";
+          ELECTRON_OZONE_PLATFORM_HINT = "auto";
+        };
+      };
+    }
+
     {
       # Hyprland program configuration
       programs = {
@@ -289,17 +291,6 @@ in {
           # dconf settings for window decorations
           dconf.settings."org/gnome/desktop/wm/preferences".button-layout = ":";
         }
-      ];
-
-      # Set default Hyprland variables
-      modules.desktop.hyprland.hyprVariables = mkMerge [
-        {
-          XDG_CURRENT_DESKTOP = "Hyprland";
-          XDG_SESSION_DESKTOP = "Hyprland";
-        }
-        (mkIf stylixCursorSizeSet {
-          XCURSOR_SIZE = builtins.toString config.stylix.cursor.size;
-        })
       ];
     })
   ]);
