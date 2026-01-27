@@ -15,13 +15,13 @@
 
     # UI components (panels, launchers, notifications)
     ./ui/noctalia
-    ./ui/rofi
-    ./ui/swaync
-    ./ui/wlogout
     ./ui/workspaces
 
     # Alternative UI components (commented - using noctalia instead)
     # ./ui/waybar
     # ./ui/hyprpanel
+    # ./ui/rofi
+    # ./ui/swaync
+    # ./ui/wlogout
   ];
 }

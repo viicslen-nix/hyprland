@@ -100,11 +100,24 @@ in {
       default = {};
       description = "Extra global variables to set";
     };
+
+    nvidia = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Enable Nvidia-specific optimizations for Hyprland.
+        This includes:
+        - nvidia_anti_flicker in OpenGL settings
+        - Optimized render settings for Nvidia GPUs
+        - Hardware cursor buffer optimizations
+      '';
+    };
   };
 
   imports = [
     inputs.hyprland.nixosModules.default
-    ./system
+    ./system/security.nix
+    ./system/services.nix
   ];
 
   config = mkIf cfg.enable (mkMerge [
@@ -171,6 +184,62 @@ in {
       };
     }
 
+    # XDG Portal Configuration
+    (mkIf cfg.portals.enable (let
+      # Determine which additional portal backends to include
+      extraPortalPackages = with pkgs;
+        [
+          xdg-desktop-portal-gtk # Always include GTK for file chooser
+        ]
+        ++ optionals (cfg.portals.backend == "gnome") [
+          xdg-desktop-portal-gnome # Add GNOME portal if selected
+        ]
+        ++ optionals (cfg.portals.backend == "qt") [
+          kdePackages.xdg-desktop-portal-kde # Add KDE portal if selected
+        ]
+        ++ (map (backend:
+          if backend == "gnome"
+          then xdg-desktop-portal-gnome
+          else if backend == "qt"
+          then kdePackages.xdg-desktop-portal-kde
+          else xdg-desktop-portal-gtk)
+        cfg.portals.extraBackends);
+
+      # Build the portal priority list for Hyprland
+      hyprlandPortals = ["hyprland" cfg.portals.backend];
+
+      # Build the portal priority list for common/fallback
+      commonPortals = [cfg.portals.backend];
+    in {
+      xdg.portal = {
+        enable = true;
+        xdgOpenUsePortal = cfg.portals.xdgOpenUsePortal;
+
+        # Portal backend configuration
+        # Defines the priority order for which portal implementation to use
+        config = {
+          # Hyprland-specific portal configuration
+          hyprland.default = hyprlandPortals;
+
+          # Fallback for other environments
+          common.default = commonPortals;
+        };
+
+        # Install portal packages
+        extraPortals =
+          [cfg.portalPackage] # xdg-desktop-portal-hyprland
+          ++ extraPortalPackages;
+
+        # Config packages (required for portal.conf generation)
+        configPackages =
+          [cfg.portalPackage]
+          ++ extraPortalPackages;
+      };
+
+      # Enable wlr portal backend (required for some applications)
+      xdg.portal.wlr.enable = true;
+    }))
+
     # Home Manager integration
     (mkIf homeManagerLoaded {
       home-manager.sharedModules = [
@@ -206,6 +275,17 @@ in {
           # dconf settings for window decorations
           dconf.settings."org/gnome/desktop/wm/preferences".button-layout = ":";
         }
+      ];
+
+      # Set default Hyprland variables
+      modules.desktop.hyprland.hyprVariables = mkMerge [
+        {
+          XDG_CURRENT_DESKTOP = "Hyprland";
+          XDG_SESSION_DESKTOP = "Hyprland";
+        }
+        (mkIf stylixCursorSizeSet {
+          XCURSOR_SIZE = builtins.toString config.stylix.cursor.size;
+        })
       ];
     })
   ]);

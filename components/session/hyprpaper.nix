@@ -1,9 +1,10 @@
 {
   pkgs,
   config,
+  lib,
   ...
 }: let
-  wallpaper = config.stylix.image;
+  wallpaper = builtins.toString config.stylix.image;
 in {
   home.packages = with pkgs; [
     hyprpaper

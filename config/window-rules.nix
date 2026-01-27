@@ -53,90 +53,90 @@ in {
     #   ];
     # in ["float, ${regexList float}"];
 
-    # window rules v2
-    windowrulev2 = [
+    # window rules (v0.53.0 unified syntax)
+    windowrule = [
       # Smart Gaps
-      "bordersize 0, floating:0, onworkspace:w[tv1]"
-      "rounding 0, floating:0, onworkspace:w[tv1]"
-      "bordersize 0, floating:0, onworkspace:f[1]"
-      "rounding 0, floating:0, onworkspace:f[1]"
+      "match:float 0, match:workspace w[tv1], border_size 0"
+      "match:float 0, match:workspace w[tv1], rounding 0"
+      "match:float 0, match:workspace f[1], border_size 0"
+      "match:float 0, match:workspace f[1], rounding 0"
 
       # Fix xwayland apps
-      "rounding 0, xwayland:1"
+      "match:xwayland 1, rounding 0"
 
       # Disable shadows when only one window is present
-      "noshadow, onworkspace:w[t1]"
+      "match:workspace w[t1], noshadow on"
 
       # Throw sharing indicators away
-      "workspace special silent, title:^(.*is sharing (your screen|a window)\.)$"
+      "match:title ^(.*is sharing (your screen|a window)\\.)$, workspace special silent"
 
       # Idle inhibit while watching videos
-      "idleinhibit focus, class:^(mpv|.+exe|celluloid)$"
-      "idleinhibit focus, class:^(firefox|microsoft-edge)$, title:^(.*YouTube.*)$"
-      "idleinhibit fullscreen, class:^(firefox|microsoft-edge)$"
+      "match:class ^(mpv|.+exe|celluloid)$, idleinhibit focus"
+      "match:class ^(firefox|microsoft-edge)$, match:title ^(.*YouTube.*)$, idleinhibit focus"
+      "match:class ^(firefox|microsoft-edge)$, match:fullscreen 1, idleinhibit on"
 
       # Make PiP windows stay on top
-      "float, title:^(Picture-in-Picture)$"
-      "pin, title:^(Picture-in-Picture)$"
+      "match:title ^(Picture-in-Picture)$, float on"
+      "match:title ^(Picture-in-Picture)$, pin on"
 
       # Transparency
-      "opacity 0.90 0.90, class:^(org.gnome.Nautilus|legcord|discord|code|libreoffice-calc)$"
+      "match:class ^(org.gnome.Nautilus|legcord|discord|code|libreoffice-calc)$, opacity 0.90 0.90"
 
       # GCR Prompter
-      "dimaround, class:^(gcr-prompter)$"
+      "match:class ^(gcr-prompter)$, dimaround on"
 
       # Polkit
-      "float, class:^(polkit-gnome-authentication-agent-1)$"
-      "center, class:^(polkit-gnome-authentication-agent-1)$"
-      "dimaround, class:^(polkit-gnome-authentication-agent-1)$"
-      "size 50% 50%, class:^(polkit-gnome-authentication-agent-1)$"
+      "match:class ^(polkit-gnome-authentication-agent-1)$, float on"
+      "match:class ^(polkit-gnome-authentication-agent-1)$, center on"
+      "match:class ^(polkit-gnome-authentication-agent-1)$, dimaround on"
+      "match:class ^(polkit-gnome-authentication-agent-1)$, size 50% 50%"
 
       # GTK File Chooser
-      "float, class:^(xdg-desktop-portal-gtk)$"
-      "center, class:^(xdg-desktop-portal-gtk)$"
-      "dimaround, class:^(xdg-desktop-portal-gtk)$"
-      "size <80% <80%, class:^(xdg-desktop-portal-gtk)$"
+      "match:class ^(xdg-desktop-portal-gtk)$, float on"
+      "match:class ^(xdg-desktop-portal-gtk)$, center on"
+      "match:class ^(xdg-desktop-portal-gtk)$, dimaround on"
+      "match:class ^(xdg-desktop-portal-gtk)$, size <80% <80%"
 
       # 1Password
-      "float, title:(1Password)"
-      "center, title:(1Password)"
+      "match:title (1Password), float on"
+      "match:title (1Password), center on"
 
       # JetBrains IDEs
-      "size <90% <80%, class:^(.*jetbrains.*)$, title:^(win.*)$"
-      "opacity 0.95 0.95, class:^(.*jetbrains.*)$"
-      # "center, class:^(.*jetbrains.*)$, title:^(Confirm Exit|Open Project|win424|win201|splash)$"
+      "match:class ^(.*jetbrains.*)$, match:title ^(win.*)$, size <90% <80%"
+      "match:class ^(.*jetbrains.*)$, opacity 0.95 0.95"
+      # "match:class ^(.*jetbrains.*)$, match:title ^(Confirm Exit|Open Project|win424|win201|splash)$, center on"
 
-      # "noinitialfocus, class:jetbrains-toolbox, floating:0"
-      # "noinitialfocus, class:(jetbrains-)(.*), floating:0"
-      # "noinitialfocus, class:(jetbrains-)(.*), title:^$, initialTitle:^$, floating:0"
-      # "center, class:(jetbrains-)(.*), initialTitle:(.+), floating:0"
-      # "center, class:(jetbrains-)(.*), title:^$, initialTitle:^$, floating:0"
-      # "noinitialfocus, class:(jetbrains-) (.*), title:^win(.*), initialTitle:win.*, floating:0"
+      # "match:class jetbrains-toolbox, match:float 0, noinitialfocus on"
+      # "match:class (jetbrains-)(.*), match:float 0, noinitialfocus on"
+      # "match:class (jetbrains-)(.*), match:title ^$, match:initialTitle ^$, match:float 0, noinitialfocus on"
+      # "match:class (jetbrains-)(.*), match:initialTitle (.+), match:float 0, center on"
+      # "match:class (jetbrains-)(.*), match:title ^$, match:initialTitle ^$, match:float 0, center on"
+      # "match:class (jetbrains-) (.*), match:title ^win(.*), match:initialTitle win.*, match:float 0, noinitialfocus on"
 
       # # -- Fix odd behaviors in IntelliJ IDEs --
       # #! Fix focus issues when dialogs are opened or closed
-      # # windowrulev2 = windowdance,class:^(jetbrains-.*)$,floating:1
+      # # windowrule = windowdance on, match:class ^(jetbrains-.*)$, match:float 1
       # #! Fix splash screen showing in weird places and prevent annoying focus takeovers
-      # "center,class:^(jetbrains-.*)$,title:^(splash)$,floating:1"
-      # "nofocus,class:^(jetbrains-.*)$,title:^(splash)$,floating:1"
-      # "noborder,class:^(jetbrains-.*)$,title:^(splash)$,floating:1"
+      # "match:class ^(jetbrains-.*)$, match:title ^(splash)$, match:float 1, center on"
+      # "match:class ^(jetbrains-.*)$, match:title ^(splash)$, match:float 1, nofocus on"
+      # "match:class ^(jetbrains-.*)$, match:title ^(splash)$, match:float 1, noborder on"
 
       # #! Center popups/find windows
-      # "center,class:^(jetbrains-.*)$,title:^( )$,floating:1"
+      # "match:class ^(jetbrains-.*)$, match:title ^( )$, match:float 1, center on"
       # #! Enabling this makes it impossible to provide input to any popup dialogue (search window, new file, etc.)
-      # "stayfocused,class:^(jetbrains-.*)$,title:^( )$,floating:1"
-      # "noborder,class:^(jetbrains-.*)$,title:^( )$,floating:1"
+      # "match:class ^(jetbrains-.*)$, match:title ^( )$, match:float 1, stayfocused on"
+      # "match:class ^(jetbrains-.*)$, match:title ^( )$, match:float 1, noborder on"
       # #! Disable window flicker when autocomplete or tooltips appear
-      # "noinitialfocus,class:^(jetbrains-.*)$,title:^(win.*)$,floating:1"
+      # "match:class ^(jetbrains-.*)$, match:title ^(win.*)$, match:float 1, noinitialfocus on"
       # # -- End of IntelliJ Rules --
 
       # Satty
-      "float, class:^(com.gabm.satty)$"
-      "pseudo, class:^(com.gabm.satty)$"
-      "size 90% 90%, class:^(com.gabm.satty)$"
+      "match:class ^(com.gabm.satty)$, float on"
+      "match:class ^(com.gabm.satty)$, pseudo on"
+      "match:class ^(com.gabm.satty)$, size 90% 90%"
 
       # LibreOffice
-      "float, class:^(soffice)$, title:^(Text Import -)(.*)$"
+      "match:class ^(soffice)$, match:title ^(Text Import -)(.*)$, float on"
     ];
   };
 }
