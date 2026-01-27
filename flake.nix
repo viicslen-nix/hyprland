@@ -35,15 +35,12 @@
 
     # Workspace management
     hyprspace.url = "github:KZDKM/Hyprspace";
-    hyprspace.inputs.nixpkgs.follows = "nixpkgs";
 
     # Window splitting utilities
     hyprsplit.url = "github:shezdy/hyprsplit";
-    hyprsplit.inputs.nixpkgs.follows = "nixpkgs";
 
     # Color management
     hyprchroma.url = "github:alexhulbert/Hyprchroma";
-    hyprchroma.inputs.nixpkgs.follows = "nixpkgs";
 
     # Noctalia shell
     noctalia.url = "github:noctalia-dev/noctalia-shell";
