@@ -15,14 +15,17 @@
   # Stylix color integration
   inherit (config.lib.stylix) colors;
 in {
+  home.packages = with pkgs; [
+    gpu-screen-recorder
+  ];
+
   # Configure Noctalia with Stylix theming
   programs.noctalia-shell = {
     enable = true;
-    systemd.enable = true;
 
     # Stylix-based Material 3 color scheme
     colors = with colors;
-      lib.mkDefault {
+      lib.mkForce {
         mPrimary = "#${base0D}";
         mOnPrimary = "#${base00}";
         mSecondary = "#${base0E}";
@@ -42,148 +45,144 @@ in {
       };
 
     # Noctalia settings - migrating waybar features
-    settings = lib.mkDefault {
-      # Bar configuration (replaces waybar)
+    settings = {
       bar = {
-        position = "top";
-        density = "default";
-        showCapsule = true;
-        backgroundOpacity = 0.3; # Match waybar transparency
-        floating = false;
-        marginVertical = 0;
-        marginHorizontal = 0;
-        exclusive = true;
-
+        capsuleOpacity = lib.mkDefault 0.5;
+        backgroundOpacity = lib.mkDefault 0.3;
         widgets = {
           left = [
-            {id = "Launcher";}
             {
-              id = "Workspace";
-              hideUnoccupied = false;
-              labelMode = "index";
-            }
-            {id = "ActiveWindow";}
-          ];
-
-          center = [
-            {
-              id = "Clock";
-              useMonospacedFont = true;
+              id = "Launcher";
+              icon = "rocket";
               usePrimaryColor = true;
             }
-          ];
-
-          right = [
-            {id = "Tray";}
-            {id = "SystemMonitor";} # Replaces waybar CPU/memory modules
-            {id = "Network";}
-            {id = "Bluetooth";}
-            {id = "Volume";}
-            {id = "Brightness";}
             {
-              id = "Battery";
-              alwaysShowPercentage = false;
-              warningThreshold = 30;
+              id = "Workspace";
+              characterCount = 2;
+              colorizeIcons = false;
+              emptyColor = "secondary";
+              enableScrollWheel = true;
+              focusedColor = "primary";
+              followFocusedScreen = true;
+              groupedBorderOpacity = 1;
+              hideUnoccupied = false;
+              iconScale = 0.8;
+              labelMode = "index";
+              occupiedColor = "secondary";
+              showApplications = false;
+              showBadge = true;
+              showLabelsOnlyWhenOccupied = true;
+              unfocusedIconsOpacity = 1;
             }
-            {id = "NotificationHistory";}
-            {id = "ControlCenter";}
+            {
+              id = "ActiveWindow";
+              colorizeIcons = true;
+              hideMode = "hidden";
+              maxWidth = 200;
+              scrollingMode = "hover";
+              showIcon = true;
+              useFixedWidth = false;
+            }
+            {
+              id = "plugin:screen-recorder";
+            }
+          ];
+          center = [
+            {
+              id = "NotificationHistory";
+              hideWhenZero = true;
+              showUnreadBadge = true;
+            }
+            {
+              id = "Clock";
+              usePrimaryColor = true;
+            }
+            {
+              id = "MediaMini";
+              hideMode = "hidden";
+              panelShowAlbumArt = true;
+              panelShowVisualizer = true;
+            }
+          ];
+          right = [
+            {
+              id = "SystemMonitor";
+              showCpuTemp = false;
+              showCpuUsage = true;
+              showMemoryAsPercent = true;
+              showMemoryUsage = true;
+              usePrimaryColor = true;
+            }
+            {
+              id = "plugin:hyprland-steam-overlay";
+            }
+            {
+              id = "Tray";
+              colorizeIcons = true;
+              pinned = [];
+              blacklist = [];
+            }
+            {
+              id = "plugin:mini-docker";
+            }
+            {
+              id = "plugin:keybind-cheatsheet";
+            }
+            {
+              id = "Volume";
+            }
+            {
+              id = "plugin:privacy-indicator";
+            }
+            {
+              id = "ControlCenter";
+              useDistroLogo = true;
+              enableColorization = true;
+              colorizeDistroLogo = true;
+              colorizeSystemIcon = "primary";
+            }
           ];
         };
       };
 
-      # General settings
       general = {
-        radiusRatio = 0.2;
-        enableShadows = true;
-        lockOnSuspend = true;
-        showSessionButtonsOnLockScreen = true;
+        lockScreenCountdownDuration = 5000;
       };
 
-      # Location settings (replaces waybar clock timezone)
+      ui = {
+        panelBackgroundOpacity = lib.mkDefault 0.4;
+      };
+
       location = {
-        name = "Local";
-        use12hourFormat = false;
-        weatherEnabled = true;
+        name = "Miami, FL";
+        useFahrenheit = true;
+        use12hourFormat = true;
+        hideWeatherCityName = true;
       };
 
-      # Control center configuration
-      controlCenter = {
-        position = "close_to_bar_button";
-        cards = [
-          {
-            enabled = true;
-            id = "profile-card";
-          }
-          {
-            enabled = true;
-            id = "shortcuts-card";
-          }
-          {
-            enabled = true;
-            id = "audio-card";
-          }
-          {
-            enabled = true;
-            id = "brightness-card";
-          }
-          {
-            enabled = true;
-            id = "weather-card";
-          }
-          {
-            enabled = true;
-            id = "media-sysmon-card";
-          }
-        ];
-      };
-
-      # Notifications (replaces waybar custom/notification)
-      notifications = {
-        enabled = true;
-        location = "top_right";
-        backgroundOpacity = 1;
-        normalUrgencyDuration = 8;
-      };
-
-      # Audio settings (replaces waybar wireplumber)
-      audio = {
-        volumeStep = 5;
-        volumeOverdrive = false;
-        volumeFeedback = false;
-      };
-
-      # Brightness settings (replaces waybar backlight)
-      brightness = {
-        brightnessStep = 5;
-        enforceMinimum = true;
-      };
-
-      # System monitor (replaces waybar cpu/memory)
-      systemMonitor = {
-        cpuWarningThreshold = 80;
-        cpuCriticalThreshold = 90;
-        memWarningThreshold = 80;
-        memCriticalThreshold = 90;
-      };
-
-      # Disable wallpaper management (keep hyprpaper)
       wallpaper = {
-        enabled = false;
+        directory = "/home/neoscode/Pictures/Wallpapers";
+        automationEnabled = true;
       };
 
-      # App launcher settings
       appLauncher = {
-        position = "center";
-        sortByMostUsed = true;
-        showCategories = true;
+        enableClipboardHistory = true;
       };
 
-      # Session menu (replaces waybar custom/exit)
+      dock = {
+        backgroundOpacity = lib.mkDefault 0.3;
+      };
+
       sessionMenu = {
-        enableCountdown = true;
-        countdownDuration = 10000;
-        position = "center";
-        showHeader = true;
+        largeButtonsStyle = true;
+      };
+
+      notifications = {
+        backgroundOpacity = lib.mkDefault 0.7;
+      };
+
+      osd = {
+        backgroundOpacity = lib.mkDefault 0.7;
       };
     };
   };
