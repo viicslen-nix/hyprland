@@ -9,10 +9,6 @@
     hyprland.url = "github:hyprwm/Hyprland";
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
 
-    # Status bar and UI components
-    # waybar.url = "github:Alexays/Waybar";
-    # waybar.inputs.nixpkgs.follows = "nixpkgs";
-
     # Hyprland utilities and extensions
     pyprland.url = "github:hyprland-community/pyprland";
     pyprland.inputs.nixpkgs.follows = "nixpkgs";
@@ -54,8 +50,16 @@
     noctalia.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = {nixpkgs, ...} @ inputs: {
+  outputs = {nixpkgs, ...} @ inputs: let
+    forAllSystems = nixpkgs.lib.genAttrs [
+      "x86_64-linux"
+      "aarch64-linux"
+    ];
+  in {
     # Main NixOS module for hyprland desktop environment
     nixosModules.default = import ./default.nix inputs;
+
+    # Formatter for `nix fmt`
+    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
   };
 }

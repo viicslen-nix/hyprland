@@ -1,77 +1,94 @@
-# Hyprland Desktop Environment Flake
+# Hyprland Desktop Environment Module
 
-A comprehensive NixOS flake providing a fully configured Hyprland desktop environment with modern Wayland tools and extensions.
-
-## Overview
-
-This flake provides a complete Hyprland desktop setup including:
-
-- Hyprland compositor with plugins and extensions
-- Status bars (Waybar, HyprPanel)
-- Application launchers (Rofi)
-- Notification system (SwayNC)
-- Window management and workspace utilities
-- Screenshot and screen capture tools
-- Authentication and session management
+A comprehensive NixOS flake for configuring the Hyprland Wayland compositor with a complete desktop environment setup.
 
 ## Features
 
-- **Compositor**: Hyprland with UWSM support
-- **Status Bar**: Waybar with custom styling and scripts
-- **Notifications**: SwayNC notification daemon
-- **Application Launcher**: Rofi with emoji picker and web search
-- **Session Management**: Hypridle and Hyprlock
-- **Wallpaper**: Hyprpaper with Waypaper GUI
-- **Screenshots**: Flameshot, Grim, Slurp, and Satty
-- **Workspace Management**: Custom workspace switching and window rules
-- **Plugins**: Hyprexpo, Hyprspace, Hyprsplit, and Hyprchroma
-- **Audio**: PulseAudio/PipeWire controls with pavucontrol and pwvucontrol
+- **Hyprland Compositor**: Modern tiling Wayland compositor with animations and effects
+- **Portal Integration**: Properly configured XDG desktop portals for file pickers, screen sharing, and desktop integration
+- **Session Management**: Wallpaper (hyprpaper), screen locking (hyprlock), and idle management (hypridle)
+- **UI Components**: Noctalia shell, Rofi launcher, SwayNC notifications, and more
+- **Plugin System**: Extensible with Hyprland plugins (hyprexpo, hyprsplit, hyprspace, hyprchroma)
+- **Screenshot Tools**: Integrated grimblast, satty, and flameshot
+- **Visual Continuity**: GTK-first approach for consistent theming across applications
 
-## Structure
+## Module Options
 
-```text
-.
-├── flake.nix              # Main flake definition with inputs
-├── default.nix           # NixOS module implementation
-├── config/                # Hyprland configuration
-│   ├── default.nix       # Configuration module imports
-│   ├── settings.nix      # General Hyprland settings
-│   ├── rules.nix         # Window and workspace rules
-│   ├── binds.nix         # Keybindings configuration
-│   ├── env.nix          # Environment variables
-│   └── plugins/          # Plugin configurations
-├── components/           # Desktop component configurations
-│   ├── default.nix      # Component imports
-│   ├── waybar/          # Status bar configuration
-│   ├── rofi/            # Application launcher
-│   ├── swaync/          # Notifications
-│   ├── workspaces/      # Workspace management
-│   ├── wlogout/         # Logout menu
-│   ├── hyprpanel/       # Alternative panel
-│   └── *.nix           # Individual component configs
-└── README.md            # This file
+### Basic Configuration
+
+```nix
+modules.desktop.hyprland = {
+  enable = true;                # Enable Hyprland desktop environment
+  package = <derivation>;       # Hyprland package (default: from flake input)
+  portalPackage = <derivation>; # Portal package (default: from flake input)
+};
+```
+
+### Portal Configuration
+
+The portal system handles file choosers, screen sharing, and other desktop integration features:
+
+```nix
+modules.desktop.hyprland.portals = {
+  enable = true;                # Enable XDG desktop portals (default: true)
+
+  backend = "gtk";              # Portal backend: "gtk" | "gnome" | "qt"
+                                # - gtk: Lightweight, recommended for visual continuity
+                                # - gnome: Full GNOME features (heavier)
+                                # - qt: KDE/Qt integration
+
+  xdgOpenUsePortal = true;      # Use portals for xdg-open (default: true)
+
+  extraBackends = [ "gnome" ];  # Additional backends to install (default: [])
+};
+```
+
+### Environment Variables
+
+```nix
+modules.desktop.hyprland = {
+  # Hyprland-specific variables
+  hyprVariables = {
+    XDG_CURRENT_DESKTOP = "Hyprland";
+    XDG_SESSION_DESKTOP = "Hyprland";
+    XCURSOR_SIZE = "24";
+  };
+
+  # Global Wayland environment variables
+  globalVariables = {
+    XDG_SESSION_TYPE = "wayland";
+    GDK_BACKEND = "wayland,x11";
+    MOZ_ENABLE_WAYLAND = "1";
+    # ... and more
+  };
+
+  # User-defined extra variables
+  extraGlobalVariables = {
+    MY_CUSTOM_VAR = "value";
+  };
+};
 ```
 
 ## Usage
 
-### As a NixOS Module
-
-Add this flake as an input to your system flake:
+### In your NixOS configuration
 
 ```nix
 {
   inputs = {
-    # ... other inputs
-    hyprland-config.url = "path:./flakes/hyprland";
-    hyprland-config.inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    hyprland-flake.url = "path:./flakes/hyprland";
   };
 
-  outputs = { nixpkgs, hyprland-config, ... }: {
-    nixosConfigurations.yourhost = nixpkgs.lib.nixosSystem {
+  outputs = {nixpkgs, hyprland-flake, ...}: {
+    nixosConfigurations.yourHost = nixpkgs.lib.nixosSystem {
       modules = [
-        hyprland-config.nixosModules.default
+        hyprland-flake.nixosModules.default
         {
-          modules.desktop.hyprland.enable = true;
+          modules.desktop.hyprland = {
+            enable = true;
+            portals.backend = "gtk";  # Use GTK portals for consistency
+          };
         }
       ];
     };
@@ -79,156 +96,172 @@ Add this flake as an input to your system flake:
 }
 ```
 
-### Configuration Options
+## Portal Backend Comparison
 
-The module provides several configuration options:
+| Backend | Size   | Features                           | Use Case                    |
+|---------|--------|------------------------------------|-----------------------------|
+| **gtk** | Light  | File picker, URI handling          | Recommended for most setups |
+| gnome   | Heavy  | + Screen sharing, GNOME integration| If you use GNOME apps       |
+| qt      | Medium | KDE/Qt file picker                 | Qt-heavy environments       |
 
-```nix
-modules.desktop.hyprland = {
-  enable = true;                    # Enable the Hyprland desktop
-  gnomeCompatibility = false;       # Enable GNOME app compatibility
-  package = <derivation>;           # Custom Hyprland package
-  portalPackage = <derivation>;     # Custom portal package
+**Recommendation**: Use `gtk` for visual continuity and lightweight operation. Only use `gnome` if you specifically need GNOME screensharing or have GNOME-specific requirements.
 
-  # Environment variables
-  hyprVariables = {
-    XDG_CURRENT_DESKTOP = "Hyprland";
-    # ... more variables
-  };
+## Available Components
 
-  globalVariables = {
-    NIXPKGS_ALLOW_UNFREE = "1";
-    # ... Wayland variables
-  };
+### UI Components
 
-  extraGlobalVariables = {
-    # Custom environment variables
-  };
-};
-```
+- **Noctalia**: Modern status bar and shell (primary, replaces Waybar)
+- **Rofi**: Application launcher with custom themes
+- **SwayNC**: Notification daemon with customizable styles
+- **Wlogout**: Logout/power menu
+- **Workspaces**: Workspace indicators
 
-## Components
+### Session Management
 
-### Waybar
+- **Hyprpaper**: Wallpaper manager (integrates with Stylix)
+- **Hyprlock**: Lock screen with customization
+- **Hypridle**: Idle management with suspend/lock timeouts
+- **Pyprland**: Scratchpads and window extensions
 
-- Custom CSS styling
-- PipeWire audio controls
-- Mullvad VPN status
-- System information displays
+### Tools
 
-### Rofi
-
-- Application launcher
-- Emoji picker
-- Web search functionality
-- Custom styling
-
-### SwayNC
-
-- Notification daemon
-- Custom CSS styling
-- Notification history
-
-### Workspace Management
-
-- Custom workspace switching
-- Application-specific workspace rules
-- Window management utilities
-
-### Screenshot Tools
-
+- **Grimblast**: Screenshot utility (Hyprland-contrib)
 - **Flameshot**: Feature-rich screenshot tool
-- **Grim/Slurp**: Wayland native screenshot utilities
-- **Satty**: Image annotation tool
-- **Grimblast**: Hyprland-contrib screenshot utility
+- **Satty**: Screenshot annotation
+- **SwayOSD**: On-screen display for volume/brightness
 
 ## Plugins
 
-The flake includes several Hyprland plugins:
+Hyprland plugins add extra compositor features:
 
-- **Hyprexpo**: Overview/expose functionality
-- **Hyprspace**: Workspace management
-- **Hyprsplit**: Advanced window splitting
-- **Hyprchroma**: Color management
-- **CSGO Vulkan Fix**: Gaming compatibility
+- **hyprexpo**: Workspace overview/expo (active)
+- **hyprsplit**: Advanced window splitting (disabled - may conflict with dwindle)
+- **hyprspace**: 3D workspace overview (disabled - needs GPU performance)
+- **hyprchroma**: Color management (disabled - experimental)
 
-## Environment Variables
+To enable a plugin, uncomment it in `config/plugins/default.nix`.
 
-The module automatically sets up Wayland environment variables:
+## Formatting
 
-- `XDG_SESSION_TYPE=wayland`
-- `GDK_BACKEND=wayland,x11`
-- `QT_QPA_PLATFORM=wayland;xcb`
-- `MOZ_ENABLE_WAYLAND=1`
-- `NIXOS_OZONE_WL=1`
+This flake uses Alejandra for consistent Nix formatting:
+
+```bash
+# Format all files in the flake
+nix fmt
+
+# Or manually with alejandra
+nix run nixpkgs#alejandra -- .
+```
+
+## Binary Cache
+
+The module automatically configures the official Hyprland binary cache for faster builds:
+
+```nix
+nix.settings = {
+  substituters = [ "https://hyprland.cachix.org" ];
+  trusted-public-keys = [ "hyprland.cachix.org-1:..." ];
+};
+```
 
 ## Dependencies
 
-The flake pulls from several upstream sources:
+### Flake Inputs
 
-- **Hyprland**: Main compositor
-- **Waybar**: Status bar
-- **Pyprland**: Python utilities
-- **Hyprland-contrib**: Additional tools
-- **Hyprland-plugins**: Plugin ecosystem
-- **HyprPanel**: Alternative panel
-- Various utility packages
+- **nixpkgs**: NixOS package repository
+- **hyprland**: Hyprland compositor
+- **hyprland-contrib**: Additional tools (grimblast, etc.)
+- **hyprland-plugins**: Official plugin collection
+- **pyprland**: Python extensions for Hyprland
+- **noctalia**: Noctalia shell UI
+- **hypridle**, **hyprpaper**: Session management
+- **hyprspace**, **hyprsplit**, **hyprchroma**: Optional plugins
+
+### System Packages
+
+Automatically installed when the module is enabled:
+
+- Polkit authentication agents
+- Audio control (pavucontrol, pwvucontrol)
+- Clipboard management (wl-clipboard, cliphist)
+- Screenshot tools (grim, slurp, grimblast)
+- Wayland utilities (wlr-randr, wlroots)
 
 ## Customization
 
-### Adding Custom Keybindings
+### Changing Keybinds
 
-Edit `config/binds.nix` to add custom keybindings.
+Edit `config/keybinds.nix` to customize keyboard shortcuts.
 
 ### Modifying Window Rules
 
-Edit `config/rules.nix` to customize window behavior and workspace assignments.
+Edit `config/window-rules.nix` for application-specific behaviors.
 
-### Styling Components
+### Adjusting Visual Settings
 
-Each component has its own styling configuration:
+Edit `config/settings.nix` for animations, blur, gaps, borders, etc.
 
-- Waybar: `components/waybar/style.css`
-- SwayNC: `components/swaync/style.css`
-- Rofi: `components/rofi/*.rasi`
+### Adding Scratchpads
 
-### Adding New Components
-
-1. Create a new `.nix` file in `components/`
-2. Add the import to `components/default.nix`
-3. Configure the component using Home Manager modules
-
-## GNOME Compatibility
-
-Enable `gnomeCompatibility = true` for better integration with GNOME applications:
-
-- Enables GNOME keyring
-- Provides GNOME Control Center
-- Sets up proper file picker integration
+Edit `components/session/pyprland.nix` to add or modify scratchpad configurations.
 
 ## Troubleshooting
 
-### XDG Portal Issues
+### Portal Issues
 
-The module configures multiple XDG portals. If you experience issues with file dialogs or screen sharing, check the portal configuration.
+If file pickers or screen sharing don't work:
 
-### Audio Issues
+1. Check that `xdg.portal.enable = true` in your portal configuration
+2. Verify the backend matches your DE preferences
+3. Check `xdg-desktop-portal --version` and ensure services are running
 
-Ensure PipeWire and WirePlumber are properly configured on your system.
+### Environment Variables
 
-### Screenshot Not Working
+Variables are set in multiple places:
 
-Verify that the screenshot tools have the necessary permissions and that you're using Wayland-compatible tools.
+- System-wide in `default.nix`
+- UWSM integration in `config/environment.nix`
+- Session variables in Home Manager
+
+### Performance Issues
+
+If animations are slow:
+
+1. Reduce blur passes in `config/settings.nix`
+2. Disable `dim_inactive` or reduce `dim_strength`
+3. Consider disabling plugins like hyprspace
+
+## Migration from Previous Setup
+
+### Breaking Changes
+
+- **Option renamed**: `gnomeCompatibility` → `portals.backend = "gnome"`
+- **File moves**: Config files renamed for clarity (`binds.nix` → `keybinds.nix`, etc.)
+- **Structure**: Components reorganized into `ui/`, `tools/`, `session/` subdirectories
+
+### Update Your Configuration
+
+Replace:
+
+```nix
+modules.desktop.hyprland.gnomeCompatibility = true;
+```
+
+With:
+
+```nix
+modules.desktop.hyprland.portals.backend = "gnome";
+```
 
 ## Contributing
 
-When modifying this flake:
+When adding new components or modifying existing ones:
 
-1. Test changes on your system first
-2. Ensure all imports are properly structured
-3. Update this README if adding new features
-4. Consider backward compatibility for existing configurations
+1. Keep files organized in appropriate subdirectories
+2. Document complex configurations with inline comments
+3. Format code with Alejandra before committing
+4. Update this README if adding new features
 
 ## License
 
-This configuration follows the same license as your NixOS configuration.
+This configuration is part of a personal NixOS setup. Feel free to use and adapt it for your own needs.

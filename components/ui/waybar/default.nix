@@ -31,7 +31,7 @@ in {
 
   # Configure & Theme Waybar
   programs.waybar = {
-    enable = false;  # Disabled - using Noctalia instead
+    enable = false; # Disabled - using Noctalia instead
     systemd = {
       enable = true;
       target = "hyprland-session.target";

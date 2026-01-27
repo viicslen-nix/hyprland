@@ -1,19 +1,27 @@
+# Home Manager components for Hyprland desktop environment
+# Organized into UI components, session management, and tools
 {
   imports = [
-    ./flameshot.nix
-    ./hyprpaper.nix
-    ./hyprlock.nix
-    ./hypridle.nix
-    ./pyprland.nix
-    ./swayosd.nix
-    ./satty.nix
+    # Session management (wallpaper, lock screen, idle management)
+    ./session/hyprpaper.nix
+    ./session/hyprlock.nix
+    ./session/hypridle.nix
+    ./session/pyprland.nix
 
-    ./workspaces
-    # ./hyprpanel
-    ./wlogout
-    ./swaync
-    # ./waybar  # Replaced with noctalia
-    ./noctalia
-    ./rofi
+    # Screenshot and annotation tools
+    ./tools/flameshot.nix
+    ./tools/satty.nix
+    ./tools/swayosd.nix
+
+    # UI components (panels, launchers, notifications)
+    ./ui/noctalia
+    ./ui/rofi
+    ./ui/swaync
+    ./ui/wlogout
+    ./ui/workspaces
+
+    # Alternative UI components (commented - using noctalia instead)
+    # ./ui/waybar
+    # ./ui/hyprpanel
   ];
 }

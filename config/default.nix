@@ -1,9 +1,11 @@
+# Hyprland configuration modules
+# Core settings, keybinds, window rules, environment, and plugins
 {
   imports = [
     ./settings.nix
-    ./rules.nix
-    ./binds.nix
-    ./env.nix
+    ./keybinds.nix
+    ./window-rules.nix
+    ./environment.nix
     ./plugins
   ];
 }

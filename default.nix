@@ -32,9 +32,37 @@ in {
       description = "The portal package to use";
     };
 
-    gnomeCompatibility = mkOption {
-      type = types.bool;
-      default = false;
+    # Portal configuration options
+    portals = {
+      enable = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Whether to enable XDG desktop portals";
+      };
+
+      backend = mkOption {
+        type = types.enum ["gtk" "gnome" "qt"];
+        default = "gtk";
+        description = ''
+          Primary portal backend to use for file choosers and URI handling.
+          - gtk: Lightweight GTK file picker (recommended for visual continuity)
+          - gnome: Full GNOME integration with additional features
+          - qt: KDE/Qt file picker (for Qt-based setups)
+        '';
+      };
+
+      xdgOpenUsePortal = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Whether to use portals for xdg-open (fixes FHS environments)";
+      };
+
+      extraBackends = mkOption {
+        type = types.listOf (types.enum ["gtk" "gnome" "qt"]);
+        default = [];
+        example = ["gnome"];
+        description = "Additional portal backends to install";
+      };
     };
 
     hyprVariables = mkOption {
@@ -44,6 +72,7 @@ in {
         XDG_SESSION_DESKTOP = "Hyprland";
         XCURSOR_SIZE = mkIf stylixCursorSizeSet (builtins.toString config.stylix.cursor.size);
       };
+      description = "Hyprland-specific environment variables";
     };
 
     globalVariables = mkOption {
@@ -63,6 +92,7 @@ in {
         NIXOS_OZONE_WL = "1";
         ELECTRON_OZONE_PLATFORM_HINT = "auto";
       };
+      description = "Global environment variables for Wayland/Hyprland";
     };
 
     extraGlobalVariables = mkOption {
@@ -74,10 +104,12 @@ in {
 
   imports = [
     inputs.hyprland.nixosModules.default
+    ./system
   ];
 
   config = mkIf cfg.enable (mkMerge [
     {
+      # Hyprland program configuration
       programs = {
         hyprland = {
           enable = true;
@@ -87,109 +119,48 @@ in {
           portalPackage = cfg.portalPackage;
         };
 
-        dconf.enable = true;
         hyprlock.enable = true;
-        seahorse.enable = mkIf cfg.gnomeCompatibility true;
       };
 
-      xdg.portal = {
-        enable = true;
-        wlr.enable = true;
-        extraPortals = with pkgs; [
-          # kdePackages.xdg-desktop-portal-kde
-          cfg.portalPackage
-          # xdg-desktop-portal-hyprland
-          # xdg-desktop-portal-shana
-          xdg-desktop-portal-gtk
-          # xdg-desktop-portal-gnome
-          xdg-desktop-portal
-        ];
-        configPackages = with pkgs; [
-          # kdePackages.xdg-desktop-portal-kde
-          cfg.portalPackage
-          # xdg-desktop-portal-hyprland
-          # xdg-desktop-portal-shana
-          xdg-desktop-portal-gtk
-          # xdg-desktop-portal-gnome
-          xdg-desktop-portal
-        ];
-        # config = {
-        #   common = {
-        #     default = [
-        #       "hyprland"
-        #       "gnome"
-        #       "xdph"
-        #       "gtk"
-        #       "kde"
-        #     ];
-        #     "org.freedesktop.impl.portal.Secret" = ["gnome-keyring"];
-        #     "org.freedesktop.impl.portal.FileChooser" = mkIf (cfg.gnomeCompatibility == false) ["kde"];
-        #   };
-        #   hyprland = {
-        #     default = [
-        #       "hyprland"
-        #       "xdph"
-        #       "gtk"
-        #     ];
-        #     "org.freedesktop.impl.portal.Secret" = ["gnome-keyring"];
-        #     "org.freedesktop.impl.portal.FileChooser" = mkIf (cfg.gnomeCompatibility == false) ["kde"];
-        #   };
-        # };
-      };
-
-      # Enable configure security
-      security = {
-        polkit.enable = true;
-        pam.services.gdm.enableGnomeKeyring = mkIf cfg.gnomeCompatibility true;
-      };
-
-      # Enable reequired services
-      services = {
-        gnome = mkIf cfg.gnomeCompatibility {
-          gnome-keyring.enable = true;
-          gnome-remote-desktop.enable = true;
-          gnome-settings-daemon.enable = true;
-        };
-      };
-
+      # System environment configuration
       environment = {
         variables.XDG_RUNTIME_DIR = "/run/user/$UID";
 
         systemPackages = with pkgs; [
+          # Polkit authentication agents
           hyprpolkitagent
           polkit_gnome
-          qpwgraph
 
-          # Audio
+          # Audio control
+          qpwgraph
           pavucontrol
           pwvucontrol
           wireplumber
 
-          # wallpaper
+          # Wallpaper management
           waypaper
           hyprpaper
 
-          # screenshot
+          # Screenshot tools
           grim
           slurp
           flameshot
           inputs.hyprland-contrib.packages.${pkgs.stdenv.hostPlatform.system}.grimblast
           satty
 
-          # clipboard
+          # Clipboard management
           wl-clipboard
           cliphist
 
-          # utils
-          # networkmanagerapplet # needed for nm-applet icons
+          # Wayland utilities
           inputs.pyprland.packages.${pkgs.stdenv.hostPlatform.system}.pyprland
           wl-screenrec
-          wl-clipboard
           wlr-randr
           wlroots
         ];
       };
 
+      # Hyprland cachix binary cache
       nix.settings = {
         substituters = [
           "https://hyprland.cachix.org"
@@ -199,11 +170,15 @@ in {
         ];
       };
     }
+
+    # Home Manager integration
     (mkIf homeManagerLoaded {
       home-manager.sharedModules = [
         {
+          _module.args.hyprlandInputs = inputs;
           imports = [
             inputs.hyprland.homeManagerModules.default
+            inputs.noctalia.homeModules.default
             ./config
             ./components
           ];
@@ -215,9 +190,11 @@ in {
             systemd.enable = false;
           };
 
-          services.hyprpolkitagent.enable = cfg.gnomeCompatibility == false;
+          # Use hyprpolkitagent for GTK backend, otherwise use GNOME's
+          services.hyprpolkitagent.enable = cfg.portals.backend != "gnome";
 
-          xdg.desktopEntries."org.gnome.Settings" = mkIf cfg.gnomeCompatibility {
+          # GNOME Settings integration when using GNOME backend
+          xdg.desktopEntries."org.gnome.Settings" = mkIf (cfg.portals.backend == "gnome") {
             name = "Settings";
             comment = "Gnome Control Center";
             icon = "org.gnome.Settings";
@@ -226,6 +203,7 @@ in {
             terminal = false;
           };
 
+          # dconf settings for window decorations
           dconf.settings."org/gnome/desktop/wm/preferences".button-layout = ":";
         }
       ];
