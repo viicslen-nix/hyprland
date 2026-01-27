@@ -24,7 +24,7 @@ with lib; {
     windowrule = [
       "match:class (flameshot), match:title (flameshot), move 0 0"
       "match:class (flameshot), match:title (flameshot), pin on"
-      "match:class (flameshot), match:title (flameshot), fullscreenstate 3 3"
+      "match:class (flameshot), match:title (flameshot), fullscreen_state 3 3"
       "match:class (flameshot), match:title (flameshot), float on"
     ];
     bind = let
