@@ -10,8 +10,8 @@
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
 
     # Status bar and UI components
-    waybar.url = "github:Alexays/Waybar";
-    waybar.inputs.nixpkgs.follows = "nixpkgs";
+    # waybar.url = "github:Alexays/Waybar";
+    # waybar.inputs.nixpkgs.follows = "nixpkgs";
 
     # Hyprland utilities and extensions
     pyprland.url = "github:hyprland-community/pyprland";
@@ -48,6 +48,10 @@
     # Color management
     hyprchroma.url = "github:alexhulbert/Hyprchroma";
     hyprchroma.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Noctalia shell
+    noctalia.url = "github:noctalia-dev/noctalia-shell";
+    noctalia.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {nixpkgs, ...} @ inputs: {

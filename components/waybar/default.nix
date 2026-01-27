@@ -12,25 +12,26 @@ in {
   # services.network-manager-applet.enable = true;
   # services.blueman-applet.enable = true;
 
+  # WAYBAR CONFIGURATION - COMMENTED OUT (Replaced with Noctalia)
   # Configure Hyprland
-  wayland.windowManager.hyprland.settings = {
-    layerrule = [
-      "blur, ^(waybar)$"
-      "blurpopups, ^(waybar)$"
-      "ignorealpha 0.2, ^(waybar)$"
-    ];
-
-    bind = [
-      "$mod CTRL SHIFT, R, exec, systemctl --user restart waybar.service"
-    ];
-  };
+  # wayland.windowManager.hyprland.settings = {
+  #   layerrule = [
+  #     "blur, ^(waybar)$"
+  #     "blurpopups, ^(waybar)$"
+  #     "ignorealpha 0.2, ^(waybar)$"
+  #   ];
+  #
+  #   bind = [
+  #     "$mod CTRL SHIFT, R, exec, systemctl --user restart waybar.service"
+  #   ];
+  # };
 
   # Disable Stylix Theme
-  stylix.targets.waybar.enable = false;
+  # stylix.targets.waybar.enable = false;
 
   # Configure & Theme Waybar
   programs.waybar = {
-    enable = true;
+    enable = false;  # Disabled - using Noctalia instead
     systemd = {
       enable = true;
       target = "hyprland-session.target";

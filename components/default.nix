@@ -12,7 +12,8 @@
     # ./hyprpanel
     ./wlogout
     ./swaync
-    ./waybar
+    # ./waybar  # Replaced with noctalia
+    ./noctalia
     ./rofi
   ];
 }
