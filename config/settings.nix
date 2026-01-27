@@ -33,10 +33,6 @@ in {
       gaps_out = 5;
       border_size = 2;
 
-      # Border colors for visual feedback
-      "col.inactive_border" = "rgba(595959aa)";
-      "col.active_border" = "rgba(33ccffee) rgba(00ff99ee) 45deg";
-
       # Window management
       allow_tearing = true;
       resize_on_border = true;
@@ -110,8 +106,6 @@ in {
 
     # Gestures for touchpad users
     gestures = {
-      workspace_swipe = true;
-      workspace_swipe_fingers = 3;
       workspace_swipe_distance = 300;
       workspace_swipe_cancel_ratio = 0.5;
       workspace_swipe_create_new = true;
@@ -128,10 +122,6 @@ in {
       drag_into_group = 1;
       merge_groups_on_drag = true;
 
-      # Border colors for groups
-      "col.border_active" = "rgba(33ccffaa)";
-      "col.border_inactive" = "rgba(595959aa)";
-
       groupbar = {
         enabled = true;
         font_size = 16;
@@ -139,7 +129,6 @@ in {
         height = 14;
         render_titles = true;
         scrolling = true;
-        text_color = "rgba(ffffffff)";
       };
     };
 
@@ -193,7 +182,6 @@ in {
       vrr = mkDefault 3;
 
       # Branding
-      disable_hyprland_logo = false;
       disable_splash_rendering = false;
       force_default_wallpaper = -1;
 
@@ -203,7 +191,7 @@ in {
 
       # Window swallowing feature
       enable_swallow = true;
-      swallow_regex = "^(kitty|alacritty|foot|wezterm|konsole|gnome-terminal)$";
+      swallow_regex = "^(kitty|alacritty|foot|wezterm|konsole|gnome-terminal|ghostty)$";
       swallow_exception_regex = "^(wev)$";
 
       # Behavior improvements
