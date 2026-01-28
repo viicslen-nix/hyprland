@@ -23,27 +23,6 @@ in {
   programs.noctalia-shell = {
     enable = true;
 
-    # Stylix-based Material 3 color scheme
-    colors = with colors;
-      lib.mkForce {
-        mPrimary = "#${base0D}";
-        mOnPrimary = "#${base00}";
-        mSecondary = "#${base0E}";
-        mOnSecondary = "#${base00}";
-        mTertiary = "#${base0C}";
-        mOnTertiary = "#${base00}";
-        mSurface = "#${base00}";
-        mOnSurface = "#${base05}";
-        mSurfaceVariant = "#${base01}";
-        mOnSurfaceVariant = "#${base04}";
-        mError = "#${base08}";
-        mOnError = "#${base00}";
-        mOutline = "#${base03}";
-        mShadow = "#${base00}";
-        mHover = "#${base02}";
-        mOnHover = "#${base05}";
-      };
-
     # Noctalia settings - migrating waybar features
     settings = {
       bar = {
