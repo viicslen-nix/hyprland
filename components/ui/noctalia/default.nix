@@ -114,9 +114,6 @@ in {
               usePrimaryColor = true;
             }
             {
-              id = "plugin:hyprland-steam-overlay";
-            }
-            {
               id = "Tray";
               colorizeIcons = true;
               pinned = [];
@@ -124,9 +121,6 @@ in {
             }
             {
               id = "plugin:mini-docker";
-            }
-            {
-              id = "plugin:keybind-cheatsheet";
             }
             {
               id = "Volume";
