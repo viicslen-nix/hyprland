@@ -64,56 +64,57 @@
               10);
       in
         [
-        # compositor commands
-        "$mod, Q, killactive,"
-        "$mod, F, fullscreen,"
-        "$mod, G, togglegroup,"
-        "$mod, R, togglesplit,"
-        "$mod, T, togglefloating,"
-        "$mod, P, pin,"
-        "$mod ALT, ,resizeactive,"
+          # compositor commands
+          "$mod, Q, killactive,"
+          "$mod, F, fullscreen,"
+          "$mod, G, togglegroup,"
+          "$mod, R, togglesplit,"
+          "$mod, T, togglefloating,"
+          "$mod, P, pin,"
+          "$mod ALT, ,resizeactive,"
 
-        # cycle monitors
-        "$mod SHIFT, Left, focusmonitor, l"
-        "$mod SHIFT, Right, focusmonitor, r"
+          # cycle monitors
+          "$mod SHIFT, Left, focusmonitor, l"
+          "$mod SHIFT, Right, focusmonitor, r"
 
-        # send focused workspace to left/right monitors
-        "$mod SHIFT ALT, Left, movecurrentworkspacetomonitor, l"
-        "$mod SHIFT ALT, Right, movecurrentworkspacetomonitor, r"
+          # send focused workspace to left/right monitors
+          "$mod SHIFT ALT, Left, movecurrentworkspacetomonitor, l"
+          "$mod SHIFT ALT, Right, movecurrentworkspacetomonitor, r"
 
-        # cycle workspaces
-        "$mod, Left, workspace, m-1"
-        "$mod, Right, workspace, m+1"
+          # cycle workspaces
+          "$mod, Left, workspace, m-1"
+          "$mod, Right, workspace, m+1"
 
-        # move focus
-        "$mod, H, movefocus, l"
-        "$mod, L, movefocus, r"
-        "$mod, K, movefocus, u"
-        "$mod, J, movefocus, d"
+          # move focus
+          "$mod, H, movefocus, l"
+          "$mod, L, movefocus, r"
+          "$mod, K, movefocus, u"
+          "$mod, J, movefocus, d"
 
-        # minimize
-        "$mod CTRL, M, togglespecialworkspace, minimized"
-        "$mod, M, exec, pypr toggle_special minimized"
+          # minimize
+          "$mod CTRL, M, togglespecialworkspace, minimized"
+          "$mod, M, exec, pypr toggle_special minimized"
 
-        # Scrachpads
-        "$mod CTRL, T, exec, pypr toggle term"
-        "$mod CTRL, V, exec, pypr toggle volume"
+          # Scrachpads
+          "$mod CTRL, T, exec, pypr toggle term"
+          "$mod CTRL, V, exec, pypr toggle volume"
 
-        # system
-        "$mod, L, exec, loginctl lock-session"
+          # system
+          "$mod, L, exec, loginctl lock-session"
 
-        # screenshot
-        "$mod SHIFT ALT, S, exec, grimblast --notify --cursor copysave screen"
+          # screenshot
+          "$mod SHIFT ALT, S, exec, grimblast --notify --cursor copysave screen"
 
-        # applications
-        "$mod, Return, exec, $terminal"
-        "$mod, B, exec, $browser"
-        "$mod, E, exec, $fileManager"
-        "CTRL SHIFT, Space, exec, $passwordManager"
+          # applications
+          "$mod, Return, exec, $terminal"
+          "$mod, B, exec, $browser"
+          "$mod, E, exec, $fileManager"
+          "CTRL SHIFT, Space, exec, $passwordManager"
 
-        # submaps
-        "$mod, A, submap, apps"
-      ] ++ workspaces;
+          # submaps
+          "$mod, A, submap, apps"
+        ]
+        ++ workspaces;
 
       bindl = [
         # media controls
