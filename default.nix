@@ -22,13 +22,13 @@ in {
 
     package = mkOption {
       type = types.package;
-      default = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
+      default = pkgs.hyprland;
       description = "The hyprland package to use";
     };
 
     portalPackage = mkOption {
       type = types.package;
-      default = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
+      default = pkgs.xdg-desktop-portal-hyprland;
       description = "The portal package to use";
     };
 
@@ -98,7 +98,7 @@ in {
 
       package = mkOption {
         type = types.package;
-        default = inputs.hyprsplit.packages.${pkgs.stdenv.hostPlatform.system}.hyprsplit;
+        default = pkgs.hyprlandPlugins.hyprsplit;
         description = "The hyprsplit package to use";
       };
     };
