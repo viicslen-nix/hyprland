@@ -19,6 +19,8 @@ in {
     gpu-screen-recorder
   ];
 
+  stylix.targets.noctalia-shell.enable = false;
+
   # Configure Noctalia with Stylix theming
   programs.noctalia-shell = {
     enable = true;
@@ -42,9 +44,9 @@ in {
               emptyColor = "secondary";
               enableScrollWheel = true;
               focusedColor = "primary";
-              followFocusedScreen = true;
+              followFocusedScreen = false;
               groupedBorderOpacity = 1;
-              hideUnoccupied = false;
+              hideUnoccupied = true;
               iconScale = 0.8;
               labelMode = "index";
               occupiedColor = "secondary";
@@ -55,7 +57,7 @@ in {
             }
             {
               id = "ActiveWindow";
-              colorizeIcons = true;
+              colorizeIcons = false;
               hideMode = "hidden";
               maxWidth = 200;
               scrollingMode = "hover";
@@ -110,8 +112,8 @@ in {
             {
               id = "ControlCenter";
               useDistroLogo = true;
-              enableColorization = true;
               colorizeDistroLogo = true;
+              enableColorization = false;
               colorizeSystemIcon = "primary";
             }
           ];
@@ -162,15 +164,21 @@ in {
 
   # Hyprland integration
   wayland.windowManager.hyprland.settings = {
+    exec-once = lib.mkAfter [
+      "noctalia-shell"
+    ];
+
     # Layer rules for noctalia (replaces waybar layer rules)
     layerrule = [
       "blur, ^(noctalia)$"
       "blurpopups, ^(noctalia)$"
-      "ignorealpha 0.2, ^(noctalia)$"
+      "ignorealpha 0.1, ^(noctalia)$"
     ];
 
     # Keybinds for noctalia (replaces waybar keybinds)
     bind = [
+      "$mod CTRL SHIFT, R, exec, killall noctalia-shell && noctalia-shell"
+
       # Launcher
       "$mod, Space, exec, ${lib.concatStringsSep " " (noctalia "launcher toggle")}"
 

@@ -4,9 +4,9 @@
   imports = [
     # Session management (wallpaper, lock screen, idle management)
     ./session/hyprpaper.nix
-    ./session/hyprlock.nix
     ./session/hypridle.nix
     ./session/pyprland.nix
+    # ./session/hyprlock.nix
 
     # Screenshot and annotation tools
     ./tools/flameshot.nix
