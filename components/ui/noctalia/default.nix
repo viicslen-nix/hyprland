@@ -177,7 +177,7 @@ in {
 
     # Keybinds for noctalia (replaces waybar keybinds)
     bind = [
-      "$mod CTRL SHIFT, R, exec, killall noctalia-shell && noctalia-shell"
+      "$mod CTRL SHIFT, R, exec, killall noctalia-shell; noctalia-shell"
 
       # Launcher
       "$mod, Space, exec, ${lib.concatStringsSep " " (noctalia "launcher toggle")}"
