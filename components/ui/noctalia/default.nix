@@ -173,6 +173,10 @@ in {
       "blur, ^(noctalia)$"
       "blurpopups, ^(noctalia)$"
       "ignorealpha 0.1, ^(noctalia)$"
+
+      "match:namespace ^(noctalia-background-.*)$, blur on"
+      "match:namespace ^(noctalia-background-.*)$, blur_popups on"
+      "match:namespace ^(noctalia-background-.*)$, ignore_alpha 0.1"
     ];
 
     # Keybinds for noctalia (replaces waybar keybinds)

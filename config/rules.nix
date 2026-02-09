@@ -1,6 +1,15 @@
 {lib, ...}: let
   regexList = list: "^(${lib.concatStringsSep "|" list})$";
 in {
+  import = [
+    ./rules/one-password.nix
+    ./rules/jetbrains.nix
+    ./rules/browser.nix
+    ./rules/localsend.nix
+    ./rules/system.nix
+    ./rules/terminal.nix
+  ];
+
   wayland.windowManager.hyprland.settings = {
     # layer rules
     layerrule = let
@@ -29,11 +38,6 @@ in {
         "match:namespace ${regexList blurred}, blur_popups on"
         "match:namespace ${regexList highopacity}, ignore_alpha 0.5"
         "match:namespace ${regexList lowopacity}, ignore_alpha 0.2"
-
-        # Noctalia rules
-        "match:namespace ^(noctalia-background-.*)$, blur on"
-        "match:namespace ^(noctalia-background-.*)$, blur_popups on"
-        "match:namespace ^(noctalia-background-.*)$, ignore_alpha 0.3"
       ];
 
     workspace = [
@@ -85,39 +89,6 @@ in {
       "match:class ^(xdg-desktop-portal-gtk)$, center on"
       "match:class ^(xdg-desktop-portal-gtk)$, dim_around on"
       "match:class ^(xdg-desktop-portal-gtk)$, size <80% <80%"
-
-      # 1Password
-      "match:title (1Password), float on"
-      "match:title (1Password), center on"
-
-      # JetBrains IDEs
-      "match:class ^(.*jetbrains.*)$, match:title ^(win.*)$, size <90% <80%"
-      "match:class ^(.*jetbrains.*)$, opacity 0.95 0.95"
-      # "match:class ^(.*jetbrains.*)$, match:title ^(Confirm Exit|Open Project|win424|win201|splash)$, center on"
-
-      # "match:class jetbrains-toolbox, match:float 0, noinitialfocus on"
-      # "match:class (jetbrains-)(.*), match:float 0, noinitialfocus on"
-      # "match:class (jetbrains-)(.*), match:title ^$, match:initialTitle ^$, match:float 0, noinitialfocus on"
-      # "match:class (jetbrains-)(.*), match:initialTitle (.+), match:float 0, center on"
-      # "match:class (jetbrains-)(.*), match:title ^$, match:initialTitle ^$, match:float 0, center on"
-      # "match:class (jetbrains-) (.*), match:title ^win(.*), match:initialTitle win.*, match:float 0, noinitialfocus on"
-
-      # # -- Fix odd behaviors in IntelliJ IDEs --
-      # #! Fix focus issues when dialogs are opened or closed
-      # # windowrule = windowdance on, match:class ^(jetbrains-.*)$, match:float 1
-      # #! Fix splash screen showing in weird places and prevent annoying focus takeovers
-      # "match:class ^(jetbrains-.*)$, match:title ^(splash)$, match:float 1, center on"
-      # "match:class ^(jetbrains-.*)$, match:title ^(splash)$, match:float 1, nofocus on"
-      # "match:class ^(jetbrains-.*)$, match:title ^(splash)$, match:float 1, noborder on"
-
-      # #! Center popups/find windows
-      # "match:class ^(jetbrains-.*)$, match:title ^( )$, match:float 1, center on"
-      # #! Enabling this makes it impossible to provide input to any popup dialogue (search window, new file, etc.)
-      # "match:class ^(jetbrains-.*)$, match:title ^( )$, match:float 1, stayfocused on"
-      # "match:class ^(jetbrains-.*)$, match:title ^( )$, match:float 1, noborder on"
-      # #! Disable window flicker when autocomplete or tooltips appear
-      # "match:class ^(jetbrains-.*)$, match:title ^(win.*)$, match:float 1, noinitialfocus on"
-      # # -- End of IntelliJ Rules --
 
       # Satty
       "match:class ^(com.gabm.satty)$, float on"
