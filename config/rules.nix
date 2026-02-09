@@ -1,13 +1,10 @@
 {lib, ...}: let
   regexList = list: "^(${lib.concatStringsSep "|" list})$";
 in {
-  import = [
-    ./rules/one-password.nix
-    ./rules/jetbrains.nix
-    ./rules/browser.nix
-    ./rules/localsend.nix
+  imports = [
     ./rules/system.nix
-    ./rules/terminal.nix
+    ./rules/jetbrains.nix
+    ./rules/one-password.nix
   ];
 
   wayland.windowManager.hyprland.settings = {

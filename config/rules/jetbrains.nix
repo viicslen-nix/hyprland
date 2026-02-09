@@ -1,44 +1,29 @@
 {...}: {
   wayland.windowManager.hyprland.settings = {
     windowrule = [
-      # "match:class ^(.*jetbrains.*)$, opacity 0.95 0.95"
-
-      # # Fix all dialogs
-      # "tag +jb, class:^jetbrains-.+$,floating:1"
-      # "stayfocused, tag:jb"
-      # "noinitialfocus, tag:jb"
-      # "focusonactivate,class:^jetbrains-(?!toolbox)"
-
-      # # Center popups except for context menu
-      # "noinitialfocus,class:^jetbrains-(?!toolbox),floating:1"
-      # "move 30% 30%,class:^jetbrains-(?!toolbox),title:^(?!win.*),floating:1"
-      # "size 40% 40%,class:^jetbrains-(?!toolbox),title:^(?!win.*),floating:1"
-
-      # # Fix tab reordering
-      # "noinitialfocus, class:^(.*jetbrains.*)$, title:^\\s$"
-      # "nofocus, class:^(.*jetbrains.*)$, title:^\\s$"
-
-      # # Disable mouse focus for floating windows
-      # "nofollowmouse, class:^jetbrains-.+$, floating:1"
+      # JetBrains IDEs opacity
+      "opacity 0.95 0.95, match:class ^(.*jetbrains.*)$"
 
       # Fix splash screen showing in weird places and prevent annoying focus takeovers
-      "tag +jetbrains-splash, class:^jetbrains-.+$, title:^splash$, floating:1"
-      "center, tag:jetbrains-splash"
-      "nofocus, tag:jetbrains-splash"
-      "noborder, tag:jetbrains-splash"
+      "tag +jetbrains-splash, match:class ^jetbrains-.+$, match:title ^splash$"
+      "float on, match:tag jetbrains-splash"
+      "center on, match:tag jetbrains-splash"
+      "no_focus on, match:tag jetbrains-splash"
+      "no_dim on, match:tag jetbrains-splash"
 
       # Center popups/find windows
-      "tag +jetbrains, class:^jetbrains-.+$, title:^$, floating:1"
-      "center, tag:jetbrains"
-      "stayfocused, tag:jetbrains"
-      "noborder, tag:jetbrains"
-      "minsize 50% 50%, tag:jetbrains"
+      "tag +jetbrains, match:class ^jetbrains-.+$, match:title ^$"
+      "center on, match:tag jetbrains"
+      "no_dim on, match:tag jetbrains"
+      "min_size 50% 50%, match:tag jetbrains"
+      # "float on, match:tag jetbrains"
+      # "stay_focused on, match:tag jetbrains"
 
       # Disable window flicker when autocomplete or tooltips appear
-      "noinitialfocus, class:^jetbrains-.+$, title:^win.+$, floating:1"
+      "no_initial_focus on, match:class ^jetbrains-.+$, match:title ^win.+$, match:float 1"
 
       # Disable mouse focus
-      "nofollowmouse, class:^jetbrains-.+$"
+      "no_follow_mouse on, match:class ^jetbrains-.+$"
     ];
   };
 }
