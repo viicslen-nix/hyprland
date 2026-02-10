@@ -14,7 +14,8 @@
     ./tools/swayosd.nix
 
     # UI components (panels, launchers, notifications)
-    ./ui/noctalia
+    ./ui/dms
+    # ./ui/noctalia
     ./ui/workspaces
 
     # Alternative UI components (commented - using noctalia instead)
