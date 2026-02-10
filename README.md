@@ -59,7 +59,7 @@ modules.desktop.hyprland = {
     XDG_SESSION_TYPE = "wayland";
     GDK_BACKEND = "wayland,x11";
     MOZ_ENABLE_WAYLAND = "1";
-    
+
     # Add your own custom variables
     MY_CUSTOM_VAR = "value";
 
@@ -188,6 +188,131 @@ Automatically installed when the module is enabled:
 - Wayland utilities (wlr-randr, wlroots)
 
 ## Customization
+
+### Keybindings Reference
+
+This configuration uses a unified keymap system designed for muscle memory across both window managers (Hyprland/Niri) and editors (Neovim/Nixvim). See the **Unified Keymap Philosophy** section below for details.
+
+#### Modifier Key
+- **Primary Modifier**: `SUPER` (Windows/Command key)
+
+#### Navigation (Vim-Style HJKL)
+All navigation follows vim conventions:
+- **H** = Left
+- **J** = Down
+- **K** = Up
+- **L** = Right
+
+#### Modifier Layers
+The configuration uses consistent modifier stacking:
+- **Base (SUPER)**: Focus/navigate
+- **+ SHIFT**: Move/transfer
+- **+ CTRL**: Workspace level
+- **+ SHIFT + ALT**: Cross-monitor operations
+
+#### Core Keybinds
+
+**Window Management**
+| Keybind | Action |
+|---------|--------|
+| `SUPER + Q` | Close window |
+| `SUPER + F` | Fullscreen |
+| `SUPER + T` | Toggle floating |
+| `SUPER + P` | Pin window |
+| `SUPER + G` | Toggle group |
+| `SUPER + R` | Toggle split |
+
+**Navigation**
+| Keybind | Action |
+|---------|--------|
+| `SUPER + H/J/K/L` | Move focus left/down/up/right |
+| `SUPER + CTRL + H/L` | Cycle workspace -1/+1 |
+| `SUPER + SHIFT + H/L` | Focus monitor left/right |
+| `SUPER + 1-0` | Switch to workspace 1-10 |
+| `SUPER + SHIFT + 1-0` | Move window to workspace (silent) |
+
+**Monitor & Workspace Management**
+| Keybind | Action |
+|---------|--------|
+| `SUPER + SHIFT + ALT + H/L` | Move workspace to monitor left/right |
+| `SUPER + SHIFT + Left/Right` | Focus monitor left/right (arrows) |
+| `SUPER + Left/Right` | Cycle workspace (arrows) |
+
+**Interactive Menus (using wlr-which-key)**
+| Keybind | Menu | Actions |
+|---------|------|---------|
+| `SUPER + W` | Window Focus | `h/j/k/l` to move focus |
+| `SUPER + SHIFT + W` | Window Move | `h/j/k/l` to move window |
+| `SUPER + Z` | Window Resize | `h/j/k/l` to resize (±40px) |
+| `SUPER + A` | Application Launcher | See applications section |
+
+**Applications**
+| Keybind | Action |
+|---------|--------|
+| `SUPER + Return` | Terminal |
+| `SUPER + B` | Browser |
+| `SUPER + E` | File Manager |
+| `CTRL + SHIFT + Space` | Password Manager |
+
+**Application Menu (`SUPER + A`)**
+| Key | Application |
+|-----|-------------|
+| `p` | PhpStorm |
+| `d` | DataGrip |
+| `w` | WebStorm |
+| `s` | Slack |
+| `l` | Discord |
+| `f` | Firefox |
+| `c` | VSCode |
+| `e` | Nautilus |
+| `t` | Terminal (ghostty) |
+
+**Special Features**
+| Keybind | Action |
+|---------|--------|
+| `SUPER + M` | Toggle minimized (pypr) |
+| `SUPER + CTRL + M` | Toggle special workspace |
+| `SUPER + CTRL + T` | Toggle terminal scratchpad |
+| `SUPER + CTRL + V` | Toggle volume scratchpad |
+| `SUPER + CTRL + L` | Lock session |
+| `SUPER + SHIFT + ALT + S` | Screenshot |
+
+**Media & System**
+| Keybind | Action |
+|---------|--------|
+| `XF86AudioPlay` | Play/Pause |
+| `XF86AudioPrev/Next` | Previous/Next track |
+| `XF86AudioMute` | Toggle mute |
+| `XF86AudioRaiseVolume` | Volume +6% |
+| `XF86AudioLowerVolume` | Volume -6% |
+| `XF86MonBrightnessUp` | Brightness +5% |
+| `XF86MonBrightnessDown` | Brightness -5% |
+
+**Mouse Bindings**
+| Keybind | Action |
+|---------|--------|
+| `SUPER + Left Click` | Move window |
+| `SUPER + Right Click` | Resize window |
+| `SUPER + ALT + Left Click` | Resize window |
+
+### Unified Keymap Philosophy
+
+This configuration implements a **cross-system keymap standardization** to reduce cognitive load and leverage muscle memory:
+
+**Principles:**
+1. **Vim-style navigation everywhere**: H/J/K/L for directional movement in WMs and editors
+2. **Consistent modifiers**: Same modifier patterns across Hyprland and Niri
+3. **Namespace-based menus**: Interactive menus (via wlr-which-key) for grouped actions
+4. **Leader key harmony**: Editor leader key (`Space`) mirrors WM application menu (`SUPER+A`)
+5. **Mnemonic keys**: `Q` for quit/close, `E` for explorer, `F` for fullscreen, etc.
+
+**Cross-System Consistency:**
+- **Close/Quit**: `SUPER+Q` (WM), `<leader>q` (Neovim)
+- **Explorer/Files**: `SUPER+E` (file manager), `<leader>e` (file tree)
+- **Focus Movement**: `SUPER+H/J/K/L` (WM windows), `CTRL+H/J/K/L` (Neovim splits)
+- **Interactive Menus**: Both systems use menu/leader-based grouping for complex actions
+
+See the Niri, Nixvim, and Neovim READMEs for their specific implementations of this unified philosophy.
 
 ### Changing Keybinds
 
