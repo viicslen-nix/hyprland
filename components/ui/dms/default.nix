@@ -1,4 +1,4 @@
-{...}: {
+{lib, ...}: {
   programs.dank-material-shell = {
     enable = true;
 
@@ -23,6 +23,10 @@
   };
 
   wayland.windowManager.hyprland.settings = {
+    exec-once = lib.mkAfter [
+      "uwsm app -- dms run"
+    ];
+
     layerrule = [
       "noanim, ^(dms)$"
     ];
