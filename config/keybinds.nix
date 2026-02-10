@@ -1,6 +1,7 @@
 {
-  config,
   lib,
+  pkgs,
+  config,
   osConfig,
   ...
 }: {
@@ -27,6 +28,16 @@
         if (config.modules.functionality.defaults.passwordManager or null) != null
         then "${lib.getExe config.modules.functionality.defaults.passwordManager} --quick-access"
         else "1password --quick-access";
+
+      mkMenu = menu: let
+        configFile = builtins.toFile "config.yaml"
+          (lib.generators.toYAML {} {
+            anchor = "bottom-right";
+            inherit menu;
+          });
+        in pkgs.writeShellScriptBin "menu" ''
+          exec ${lib.getExe pkgs.wlr-which-key} ${configFile}
+        '';
     in {
       # modifier key
       "$mod" = "SUPER";
@@ -76,20 +87,95 @@
           # cycle monitors
           "$mod SHIFT, Left, focusmonitor, l"
           "$mod SHIFT, Right, focusmonitor, r"
+          "$mod SHIFT, H, focusmonitor, l"
+          "$mod SHIFT, L, focusmonitor, r"
 
           # send focused workspace to left/right monitors
           "$mod SHIFT ALT, Left, movecurrentworkspacetomonitor, l"
           "$mod SHIFT ALT, Right, movecurrentworkspacetomonitor, r"
+          "$mod SHIFT ALT, H, movecurrentworkspacetomonitor, l"
+          "$mod SHIFT ALT, L, movecurrentworkspacetomonitor, r"
 
           # cycle workspaces
           "$mod, Left, workspace, m-1"
           "$mod, Right, workspace, m+1"
+          "$mod CTRL, H, workspace, m-1"
+          "$mod CTRL, L, workspace, m+1"
 
           # move focus
           "$mod, H, movefocus, l"
           "$mod, L, movefocus, r"
           "$mod, K, movefocus, u"
           "$mod, J, movefocus, d"
+
+          ("$mod, W, exec, " + lib.getExe (mkMenu [
+            {
+              key = "h";
+              desc = "Move focus left";
+              cmd = "hyprctl dispatch movefocus l";
+            }
+            {
+              key = "l";
+              desc = "Move focus right";
+              cmd = "hyprctl dispatch movefocus r";
+            }
+            {
+              key = "k";
+              desc = "Move focus up";
+              cmd = "hyprctl dispatch movefocus u";
+            }
+            {
+              key = "j";
+              desc = "Move focus down";
+              cmd = "hyprctl dispatch movefocus d";
+            }
+          ]))
+
+          ("$mod SHIFT, W, exec, " + lib.getExe (mkMenu [
+            {
+              key = "h";
+              desc = "Move window left";
+              cmd = "hyprctl dispatch movewindow l";
+            }
+            {
+              key = "l";
+              desc = "Move window right";
+              cmd = "hyprctl dispatch movewindow r";
+            }
+            {
+              key = "k";
+              desc = "Move window up";
+              cmd = "hyprctl dispatch movewindow u";
+            }
+            {
+              key = "j";
+              desc = "Move window down";
+              cmd = "hyprctl dispatch movewindow d";
+            }
+          ]))
+
+          ("$mod, Z, exec, " + lib.getExe (mkMenu [
+            {
+              key = "h";
+              desc = "Resize window left";
+              cmd = "hyprctl dispatch resizeactive -40 0";
+            }
+            {
+              key = "l";
+              desc = "Resize window right";
+              cmd = "hyprctl dispatch resizeactive 40 0";
+            }
+            {
+              key = "k";
+              desc = "Resize window up";
+              cmd = "hyprctl dispatch resizeactive 0 -40";
+            }
+            {
+              key = "j";
+              desc = "Resize window down";
+              cmd = "hyprctl dispatch resizeactive 0 40";
+            }
+          ]))
 
           # minimize
           "$mod CTRL, M, togglespecialworkspace, minimized"
@@ -100,7 +186,7 @@
           "$mod CTRL, V, exec, pypr toggle volume"
 
           # system
-          "$mod, L, exec, loginctl lock-session"
+          "$mod CTRL, L, exec, loginctl lock-session"
 
           # screenshot
           "$mod SHIFT ALT, S, exec, grimblast --notify --cursor copysave screen"
@@ -112,7 +198,53 @@
           "CTRL SHIFT, Space, exec, $passwordManager"
 
           # submaps
-          "$mod, A, submap, apps"
+          ("$mod, A, exec, " + lib.getExe (mkMenu [
+            {
+              key = "p";
+              desc = "Open PhpStorm";
+              cmd = "phpstorm";
+            }
+            {
+              key = "d";
+              desc = "Open DataGrip";
+              cmd = "datagrip";
+            }
+            {
+              key = "w";
+              desc = "Open WebStorm";
+              cmd = "webstorm";
+            }
+            {
+              key = "s";
+              desc = "Open Slack";
+              cmd = "slack";
+            }
+            {
+              key = "l";
+              desc = "Open Discord";
+              cmd = "legcord";
+            }
+            {
+              key = "f";
+              desc = "Open Firefox";
+              cmd = "firefox";
+            }
+            {
+              key = "c";
+              desc = "Open VSCode";
+              cmd = "code";
+            }
+            {
+              key = "e";
+              desc = "Open Nautilus";
+              cmd = "nautilus";
+            }
+            {
+              key = "t";
+              desc = "Open Terminal";
+              cmd = "ghostty";
+            }
+          ]))
         ]
         ++ workspaces;
 
@@ -137,24 +269,5 @@
         ", XF86MonBrightnessDown, exec, brillo -q -u 300000 -U 5"
       ];
     };
-
-    extraConfig = ''
-      # apps
-      submap = apps
-
-      binde = , p, exec, phpstorm
-      binde = , d, exec, datagrip
-      binde = , w, exec, webstorm
-      binde = , s, exec, slack
-      binde = , l, exec, legcord
-      binde = , f, exec, firefox
-      binde = , c, exec, code
-      binde = , e, exec, nautilus
-      binde = , t, exec, kitty
-
-      bind = , escape, submap, reset
-      bind = , catchall, submap, reset
-      submap = reset
-    '';
   };
 }

@@ -2,11 +2,12 @@
   lib,
   pkgs,
   config,
+  osConfig,
   ...
 }:
 with lib; let
   # Check if Nvidia optimizations are enabled
-  nvidiaEnabled = config.modules.desktop.hyprland.nvidia or false;
+  nvidiaEnabled = osConfig.modules.desktop.hyprland.nvidia or false;
 in {
   wayland.windowManager.hyprland.settings = {
     monitor = [
