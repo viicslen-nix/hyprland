@@ -7,12 +7,11 @@
       restartIfChanged = true;         # Auto-restart dms.service when dank-material-shell changes
     };
 
-    enableSystemMonitoring = true;     # System monitoring widgets (dgop)
-    enableClipboard = true;            # Clipboard history manager
     enableVPN = true;                  # VPN management widget
+    enableCalendarEvents = true;       # Calendar integration (khal)
     enableDynamicTheming = true;       # Wallpaper-based theming (matugen)
     enableAudioWavelength = true;      # Audio visualizer (cava)
-    enableCalendarEvents = true;       # Calendar integration (khal)
+    enableSystemMonitoring = true;     # System monitoring widgets (dgop)
 
     plugins = {
       emojiLauncher.enable = true;
