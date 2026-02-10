@@ -17,6 +17,7 @@ in {
     exec-once = [
       "dbus-update-activation-environment --systemd --all"
       "systemctl --user import-environment QT_QPA_PLATFORMTHEME WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
+      "systemctl --user start hyprland-session.target"
 
       "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
       "gnome-keyring-daemon --start --components=secrets"
