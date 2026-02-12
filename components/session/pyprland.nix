@@ -48,6 +48,7 @@ in {
     class = "ferdium"
     size = "60% 90%"
     unfocus = "hide"
+    process_tracking = false
 
     [scratchpads.notes]
     animation = "fromRight"
@@ -81,28 +82,31 @@ in {
     process_tracking = false
   '';
 
-  wayland.windowManager.hyprland = {
+  wayland.windowManager.hyprland = let
+     mkMenu = menu: let
+        configFile = builtins.toFile "config.yaml"
+          (lib.generators.toYAML {} {
+            anchor = "bottom-right";
+            inherit menu;
+          });
+        in pkgs.writeShellScriptBin "menu" ''
+          exec ${lib.getExe pkgs.wlr-which-key} ${configFile}
+        '';
+   in {
     settings = {
       exec-once = lib.mkAfter [
         "killall -q .pypr-wrapped; sleep .5 && pypr"
       ];
       bind = [
-        "$mod, s, submap, scratchpads"
+        ("$mod, s, exec, " + lib.getExe (mkMenu [
+          { key = "b"; desc = "Bluetooth"; cmd = "pypr toggle bluetooth"; }
+          { key = "s"; desc = "Services"; cmd = "pypr toggle services"; }
+          { key = "n"; desc = "Notes"; cmd = "pypr toggle notes"; }
+          { key = "m"; desc = "Messages"; cmd = "pypr toggle messages"; }
+          { key = "w"; desc = "WhatsApp"; cmd = "pypr toggle whatsapp"; }
+          { key = "g"; desc = "Gemini"; cmd = "pypr toggle gemini"; }
+        ]))
       ];
     };
-    extraConfig = ''
-      submap = scratchpads
-
-      bind = , s, exec, pypr toggle services
-      bind = , n, exec, pypr toggle notes
-      bind = , m, exec, pypr toggle messages
-      bind = , w, exec, pypr toggle whatsapp
-      bind = , g, exec, pypr toggle gemini
-      bind = , r, exec, killall -q pypr-wrapped; sleep .5 && pypr
-
-      bind = , escape, submap, reset
-      bind = , catchall, submap, reset
-      submap = reset
-    '';
   };
 }
