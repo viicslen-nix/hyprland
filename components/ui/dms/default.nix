@@ -32,6 +32,7 @@
     ];
 
     bind = [
+      "$mod CTRL SHIFT, R, exec, killall dms; dms run"
       "$mod, space, exec, dms ipc call spotlight toggle"
       "$mod, V, exec, dms ipc call clipboard toggle"
       "$mod, comma, exec, dms ipc call settings focusOrToggle"
