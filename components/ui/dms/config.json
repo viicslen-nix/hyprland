@@ -1,0 +1,114 @@
+{
+  "dockTransparency": 0.3,
+  "cornerRadius": 13,
+  "showWorkspaceApps": true,
+  "launcherLogoMode": "os",
+  "fontFamily": "DejaVu Sans",
+  "monoFontFamily": "Fira Code Mono Nerd Font",
+  "launchPrefix": "uwsm-app",
+  "lockScreenNotificationMode": 1,
+  "osdMediaPlaybackEnabled": true,
+  "osdPowerProfileEnabled": true,
+  "barConfigs": [
+    {
+      "id": "default",
+      "name": "Main Bar",
+      "screenPreferences": [
+        {
+          "name": "DP-1",
+          "model": "G276HL",
+          "modelIndex": 0
+        }
+      ],
+      "showOnLastDisplay": false,
+      "centerWidgets": [
+        {
+          "id": "notificationButton",
+          "enabled": true
+        },
+        {
+          "id": "music",
+          "enabled": true
+        },
+        {
+          "id": "clock",
+          "enabled": true
+        },
+        {
+          "id": "weather",
+          "enabled": true
+        }
+      ],
+      "rightWidgets": [
+        {
+          "id": "privacyIndicator",
+          "enabled": true
+        },
+        {
+          "id": "dockerManager",
+          "enabled": true
+        },
+        {
+          "id": "systemTray",
+          "enabled": true
+        },
+        {
+          "id": "clipboard",
+          "enabled": true
+        },
+        {
+          "id": "cpuUsage",
+          "enabled": true
+        },
+        {
+          "id": "memUsage",
+          "enabled": true
+        },
+        {
+          "id": "controlCenterButton",
+          "enabled": true
+        }
+      ],
+      "spacing": 0,
+      "innerPadding": 0,
+      "transparency": 0.74,
+      "squareCorners": true,
+      "gothCornersEnabled": true,
+      "gothCornerRadiusValue": 21
+    },
+    {
+      "id": "bar1771939463833",
+      "name": "Bar 2",
+      "screenPreferences": [
+        {
+          "name": "DP-2",
+          "model": "G276HL",
+          "modelIndex": 1
+        }
+      ],
+      "showOnLastDisplay": false,
+      "leftWidgets": [
+        "launcherButton",
+        "workspaceSwitcher"
+      ],
+      "centerWidgets": [],
+      "rightWidgets": [
+        {
+          "id": "clock",
+          "enabled": true
+        },
+        {
+          "id": "controlCenterButton",
+          "enabled": true
+        }
+      ],
+      "spacing": 0,
+      "innerPadding": 1,
+      "transparency": 0.74,
+      "squareCorners": true,
+      "gothCornersEnabled": true,
+      "gothCornerRadiusValue": 21
+    }
+  ],
+  "configVersion": 5
+}

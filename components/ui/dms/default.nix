@@ -20,6 +20,8 @@
       wallpaperShufflerPlugin.enable = true;
       linuxWallpaperEngine.enable = true;
     };
+
+    settings = (builtins.fromJSON (builtins.readFile ./config.json));
   };
 
   wayland.windowManager.hyprland.settings = {
