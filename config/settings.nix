@@ -19,7 +19,7 @@ in {
       "systemctl --user import-environment QT_QPA_PLATFORMTHEME WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
       "systemctl --user start hyprland-session.target"
 
-      "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
+      # "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
       "gnome-keyring-daemon --start --components=secrets"
 
       "killall -q 1password; sleep .5 && 1password --silent"

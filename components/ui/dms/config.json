@@ -3,15 +3,12 @@
   "cornerRadius": 13,
   "showWorkspaceApps": true,
   "launcherLogoMode": "os",
-  "fontFamily": "DejaVu Sans",
-  "monoFontFamily": "Fira Code Mono Nerd Font",
-  "launchPrefix": "uwsm-app",
   "lockScreenNotificationMode": 1,
   "osdMediaPlaybackEnabled": true,
   "osdPowerProfileEnabled": true,
   "barConfigs": [
     {
-      "id": "default",
+      "id": "primary",
       "name": "Main Bar",
       "screenPreferences": [
         {
@@ -77,8 +74,8 @@
       "gothCornerRadiusValue": 21
     },
     {
-      "id": "bar1771939463833",
-      "name": "Bar 2",
+      "id": "secondary",
+      "name": "Secondary Bar",
       "screenPreferences": [
         {
           "name": "DP-2",

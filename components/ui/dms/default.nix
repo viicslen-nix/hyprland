@@ -1,4 +1,6 @@
 {lib, ...}: {
+  stylix.targets.dank-material-shell.enable = false;
+
   programs.dank-material-shell = {
     enable = true;
 
@@ -17,21 +19,17 @@
       emojiLauncher.enable = true;
       dockerManager.enable = true;
       screenshotToggle.enable = true;
-      wallpaperShufflerPlugin.enable = true;
+      # wallpaperShufflerPlugin.enable = true;
       linuxWallpaperEngine.enable = true;
     };
 
-    settings = (builtins.fromJSON (builtins.readFile ./config.json));
+    # settings = (builtins.fromJSON (builtins.readFile ./config.json));
   };
 
   wayland.windowManager.hyprland.settings = {
-    exec-once = lib.mkAfter [
-      "uwsm app -- dms run"
-    ];
-
-    layerrule = [
-      "noanim, ^(dms)$"
-    ];
+    # exec-once = lib.mkAfter [
+    #   "uwsm app -- dms run"
+    # ];
 
     bind = [
       "$mod CTRL SHIFT, R, exec, killall dms; dms run"
@@ -41,6 +39,22 @@
       "$mod, N, exec, dms ipc call notifications toggle"
       "$mod, Y, exec, dms ipc call dankdash wallpaper"
       "$mod, TAB, exec, dms ipc call hypr toggleOverview"
+    ];
+
+    windowrule = [
+      "match:class ^(org.quickshell)$, float on"
+    ];
+
+    layerrule = [
+      "blur on, match:namespace dms:(polkit|notification-center-modal|workspace-overview|color-picker|clipboard|spotlight|settings|process-list-modal)"
+      "blur on, match:namespace dms:(bar|tooltip|toast|dock-context-menu|tray-menu-window|control-center|notification-center-popout|dash|system-update|process-list-popout|battery|popout|app-launcher)"
+      "ignore_alpha 0, match:namespace dms:(polkit|notification-center-modal|workspace-overview|color-picker|clipboard|spotlight|settings|process-list-modal)"
+      "ignore_alpha 0, match:namespace dms:(bar|tooltip|toast|dock-context-menu|tray-menu-window|control-center|notification-center-popout|dash|system-update|process-list-popout|battery|popout|app-launcher)"
+
+      # Animations
+      "noanim, ^(dms)$"
+      "animation slide right, match:namespace dms:control-center"
+      "animation slide top, match:namespace dms:workspace-overview"
     ];
   };
 }
