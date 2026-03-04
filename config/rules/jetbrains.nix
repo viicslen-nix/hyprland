@@ -20,10 +20,10 @@
       # "stay_focused on, match:tag jetbrains"
 
       # Disable window flicker when autocomplete or tooltips appear
-      "no_initial_focus on, match:class ^jetbrains-.+$, match:title ^win.+$, match:float 1"
+      # "no_initial_focus on, match:class ^jetbrains-.+$, match:title ^win.+$, match:float 1"
 
       # Disable mouse focus
-      "no_follow_mouse on, match:class ^jetbrains-.+$"
+      # "no_follow_mouse on, match:class ^jetbrains-.+$"
     ];
   };
 }
