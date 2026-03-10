@@ -83,29 +83,56 @@ in {
   '';
 
   wayland.windowManager.hyprland = let
-     mkMenu = menu: let
-        configFile = builtins.toFile "config.yaml"
-          (lib.generators.toYAML {} {
-            anchor = "bottom-right";
-            inherit menu;
-          });
-        in pkgs.writeShellScriptBin "menu" ''
-          exec ${lib.getExe pkgs.wlr-which-key} ${configFile}
-        '';
-   in {
+    mkMenu = menu: let
+      configFile =
+        builtins.toFile "config.yaml"
+        (lib.generators.toYAML {} {
+          anchor = "bottom-right";
+          inherit menu;
+        });
+    in
+      pkgs.writeShellScriptBin "menu" ''
+        exec ${lib.getExe pkgs.wlr-which-key} ${configFile}
+      '';
+  in {
     settings = {
       exec-once = lib.mkAfter [
         "killall -q .pypr-wrapped; sleep .5 && pypr"
       ];
       bind = [
-        ("$mod, s, exec, " + lib.getExe (mkMenu [
-          { key = "b"; desc = "Bluetooth"; cmd = "pypr toggle bluetooth"; }
-          { key = "s"; desc = "Services"; cmd = "pypr toggle services"; }
-          { key = "n"; desc = "Notes"; cmd = "pypr toggle notes"; }
-          { key = "m"; desc = "Messages"; cmd = "pypr toggle messages"; }
-          { key = "w"; desc = "WhatsApp"; cmd = "pypr toggle whatsapp"; }
-          { key = "g"; desc = "Gemini"; cmd = "pypr toggle gemini"; }
-        ]))
+        ("$mod, s, exec, "
+          + lib.getExe (mkMenu [
+            {
+              key = "b";
+              desc = "Bluetooth";
+              cmd = "pypr toggle bluetooth";
+            }
+            {
+              key = "s";
+              desc = "Services";
+              cmd = "pypr toggle services";
+            }
+            {
+              key = "n";
+              desc = "Notes";
+              cmd = "pypr toggle notes";
+            }
+            {
+              key = "m";
+              desc = "Messages";
+              cmd = "pypr toggle messages";
+            }
+            {
+              key = "w";
+              desc = "WhatsApp";
+              cmd = "pypr toggle whatsapp";
+            }
+            {
+              key = "g";
+              desc = "Gemini";
+              cmd = "pypr toggle gemini";
+            }
+          ]))
       ];
     };
   };

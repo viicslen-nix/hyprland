@@ -1,38 +1,11 @@
 {lib, ...}: {
-  stylix.targets.dank-material-shell.enable = false;
-
-  programs.dank-material-shell = {
-    enable = true;
-
-    systemd = {
-      enable = true;                   # Systemd service for auto-start
-      restartIfChanged = true;         # Auto-restart dms.service when dank-material-shell changes
-    };
-
-    enableVPN = true;                  # VPN management widget
-    enableCalendarEvents = true;       # Calendar integration (khal)
-    enableDynamicTheming = true;       # Wallpaper-based theming (matugen)
-    enableAudioWavelength = true;      # Audio visualizer (cava)
-    enableSystemMonitoring = true;     # System monitoring widgets (dgop)
-
-    plugins = {
-      emojiLauncher.enable = true;
-      dockerManager.enable = true;
-      screenshotToggle.enable = true;
-      # wallpaperShufflerPlugin.enable = true;
-      linuxWallpaperEngine.enable = true;
-    };
-
-    # settings = (builtins.fromJSON (builtins.readFile ./config.json));
-  };
-
   wayland.windowManager.hyprland.settings = {
-    # exec-once = lib.mkAfter [
-    #   "uwsm app -- dms run"
-    # ];
+    exec-once = lib.mkAfter [
+      "uwsm app -- dms run"
+    ];
 
     bind = [
-      "$mod CTRL SHIFT, R, exec, killall dms; dms run"
+      "$mod CTRL SHIFT, R, exec, killall dms; uwsm app -- dms run"
       "$mod, space, exec, dms ipc call spotlight toggle"
       "$mod, V, exec, dms ipc call clipboard toggle"
       "$mod, comma, exec, dms ipc call settings focusOrToggle"

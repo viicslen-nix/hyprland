@@ -264,8 +264,6 @@ in {
           imports = [
             inputs.hyprland.homeManagerModules.default
             inputs.noctalia.homeModules.default
-            inputs.dms.homeModules.dank-material-shell
-            inputs.dms-plugin-registry.modules.default
             ./config
             ./components
           ];
