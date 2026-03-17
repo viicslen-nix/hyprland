@@ -102,7 +102,7 @@
           "$mod, J, movefocus, d"
 
           ("$mod, W, exec, "
-            + lib.getExe (mkMenu [
+            + mkMenu [
               {
                 key = "h";
                 desc = "Move focus left";
@@ -123,10 +123,10 @@
                 desc = "Move focus down";
                 cmd = "hyprctl dispatch movefocus d";
               }
-            ]))
+            ])
 
           ("$mod SHIFT, W, exec, "
-            + lib.getExe (mkMenu [
+            + mkMenu [
               {
                 key = "h";
                 desc = "Move window left";
@@ -147,10 +147,10 @@
                 desc = "Move window down";
                 cmd = "hyprctl dispatch movewindow d";
               }
-            ]))
+            ])
 
           ("$mod, Z, exec, "
-            + lib.getExe (mkMenu [
+            + mkMenu [
               {
                 key = "h";
                 desc = "Resize window left";
@@ -171,7 +171,7 @@
                 desc = "Resize window down";
                 cmd = "hyprctl dispatch resizeactive 0 40";
               }
-            ]))
+            ])
 
           # minimize
           "$mod CTRL, M, togglespecialworkspace, minimized"
@@ -195,7 +195,7 @@
 
           # submaps
           ("$mod, A, exec, "
-            + lib.getExe (mkMenu [
+            + mkMenu [
               {
                 key = "p";
                 desc = "Open PhpStorm";
@@ -241,7 +241,7 @@
                 desc = "Open Terminal";
                 cmd = "ghostty";
               }
-            ]))
+            ])
         ]
         ++ workspaces;
 

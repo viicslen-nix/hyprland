@@ -90,7 +90,7 @@ in {
       ];
       bind = [
         ("$mod, s, exec, "
-          + lib.getExe (wlLib.mkMenu [
+          + wlLib.mkMenu [
             {
               key = "b";
               desc = "Bluetooth";
@@ -121,7 +121,7 @@ in {
               desc = "Gemini";
               cmd = "pypr toggle gemini";
             }
-          ]))
+          ])
       ];
     };
   };
