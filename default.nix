@@ -261,6 +261,7 @@ in {
       home-manager.sharedModules = [
         {
           _module.args.hyprlandInputs = inputs;
+          _module.args.wlLib = inputs.viicslen-lib.lib.wayland {inherit pkgs lib;};
           imports = [
             inputs.hyprland.homeManagerModules.default
             inputs.noctalia.homeModules.default

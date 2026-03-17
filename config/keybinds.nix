@@ -3,6 +3,7 @@
   pkgs,
   config,
   osConfig,
+  wlLib,
   ...
 }: {
   wayland.windowManager.hyprland = {
@@ -29,17 +30,7 @@
         then "${lib.getExe config.modules.functionality.defaults.passwordManager} --quick-access"
         else "1password --quick-access";
 
-      mkMenu = menu: let
-        configFile =
-          builtins.toFile "config.yaml"
-          (lib.generators.toYAML {} {
-            anchor = "bottom-right";
-            inherit menu;
-          });
-      in
-        pkgs.writeShellScriptBin "menu" ''
-          exec ${lib.getExe pkgs.wlr-which-key} ${configFile}
-        '';
+      mkMenu = wlLib.mkMenu;
     in {
       # modifier key
       "$mod" = "SUPER";

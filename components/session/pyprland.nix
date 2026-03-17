@@ -2,6 +2,7 @@
   pkgs,
   config,
   lib,
+  wlLib,
   ...
 }: let
   webapp = name: url: (lib.concatStringsSep " " [
@@ -82,26 +83,14 @@ in {
     process_tracking = false
   '';
 
-  wayland.windowManager.hyprland = let
-    mkMenu = menu: let
-      configFile =
-        builtins.toFile "config.yaml"
-        (lib.generators.toYAML {} {
-          anchor = "bottom-right";
-          inherit menu;
-        });
-    in
-      pkgs.writeShellScriptBin "menu" ''
-        exec ${lib.getExe pkgs.wlr-which-key} ${configFile}
-      '';
-  in {
+  wayland.windowManager.hyprland = {
     settings = {
       exec-once = lib.mkAfter [
         "killall -q .pypr-wrapped; sleep .5 && pypr"
       ];
       bind = [
         ("$mod, s, exec, "
-          + lib.getExe (mkMenu [
+          + lib.getExe (wlLib.mkMenu [
             {
               key = "b";
               desc = "Bluetooth";

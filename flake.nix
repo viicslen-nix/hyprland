@@ -5,6 +5,11 @@
     # Base system packages
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
+    viicslen-lib = {
+      url = "github:viicslen-nix/lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Hyprland compositor and ecosystem
     hyprland.url = "github:hyprwm/Hyprland";
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
