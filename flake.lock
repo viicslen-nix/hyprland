@@ -103,47 +103,6 @@
         "type": "github"
       }
     },
-    "dms": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "quickshell": "quickshell"
-      },
-      "locked": {
-        "lastModified": 1770695287,
-        "narHash": "sha256-dG00GMD1B70iFZ791kAA/eONUPkWuLwHfH+tTobfJYI=",
-        "owner": "AvengeMedia",
-        "repo": "DankMaterialShell",
-        "rev": "d88b04fc30d9a4f9befeef27ddb7861b44f120c0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "AvengeMedia",
-        "repo": "DankMaterialShell",
-        "type": "github"
-      }
-    },
-    "dms-plugin-registry": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1770686844,
-        "narHash": "sha256-AqzecLxZcBOoM1CfmRngKkEc1dIrBJSYlzoeRM9aJwY=",
-        "owner": "AvengeMedia",
-        "repo": "dms-plugin-registry",
-        "rev": "c93c70097e6bf0c2ec196c6c735df99b32003454",
-        "type": "github"
-      },
-      "original": {
-        "owner": "AvengeMedia",
-        "repo": "dms-plugin-registry",
-        "type": "github"
-      }
-    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -1575,32 +1534,8 @@
         "type": "github"
       }
     },
-    "quickshell": {
-      "inputs": {
-        "nixpkgs": [
-          "dms",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1766725085,
-        "narHash": "sha256-O2aMFdDUYJazFrlwL7aSIHbUSEm3ADVZjmf41uBJfHs=",
-        "ref": "refs/heads/master",
-        "rev": "41828c4180fb921df7992a5405f5ff05d2ac2fff",
-        "revCount": 715,
-        "type": "git",
-        "url": "https://git.outfoxxed.me/quickshell/quickshell"
-      },
-      "original": {
-        "rev": "41828c4180fb921df7992a5405f5ff05d2ac2fff",
-        "type": "git",
-        "url": "https://git.outfoxxed.me/quickshell/quickshell"
-      }
-    },
     "root": {
       "inputs": {
-        "dms": "dms",
-        "dms-plugin-registry": "dms-plugin-registry",
         "hyprchroma": "hyprchroma",
         "hypridle": "hypridle",
         "hyprland": "hyprland",
@@ -1612,7 +1547,8 @@
         "hyprsplit": "hyprsplit",
         "nixpkgs": "nixpkgs_2",
         "noctalia": "noctalia",
-        "pyprland": "pyprland"
+        "pyprland": "pyprland",
+        "viicslen-lib": "viicslen-lib"
       }
     },
     "systems": {
@@ -1717,6 +1653,42 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default-linux",
+        "type": "github"
+      }
+    },
+    "systems_8": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "viicslen-lib": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "systems": "systems_8"
+      },
+      "locked": {
+        "lastModified": 1773784862,
+        "narHash": "sha256-fie1HwmxugLX9YZU2dBV+fRbig4cPbgY2g21xAPu9vI=",
+        "owner": "viicslen-nix",
+        "repo": "lib",
+        "rev": "fd3c5e5903d48fc29a2e443adae808430884ae63",
+        "type": "github"
+      },
+      "original": {
+        "owner": "viicslen-nix",
+        "repo": "lib",
         "type": "github"
       }
     },
