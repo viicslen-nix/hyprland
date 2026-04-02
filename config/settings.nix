@@ -18,13 +18,10 @@ in {
       "dbus-update-activation-environment --systemd --all"
       "systemctl --user import-environment QT_QPA_PLATFORMTHEME WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
       "systemctl --user start hyprland-session.target"
+      "systemctl --user start dms-session.target"
 
       # "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
       "gnome-keyring-daemon --start --components=secrets"
-
-      "killall -q 1password; sleep .5 && 1password --silent"
-      "killall -q mullvad; sleep .5 && mullvad-gui --silent"
-      "killall -q jetbrains-toolbox; sleep .5 && jetbrains-toolbox"
 
       "wl-paste --type text --watch cliphist store"
       "wl-paste --type image --watch cliphist store"
