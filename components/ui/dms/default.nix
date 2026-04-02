@@ -1,11 +1,7 @@
 {lib, ...}: {
   wayland.windowManager.hyprland.settings = {
-    exec-once = lib.mkAfter [
-      "uwsm app -- dms run"
-    ];
-
     bind = [
-      "$mod CTRL SHIFT, R, exec, killall dms; uwsm app -- dms run"
+      "$mod CTRL SHIFT, R, exec, systemctl --user restart dms.service"
       "$mod, space, exec, dms ipc call spotlight toggle"
       "$mod, V, exec, dms ipc call clipboard toggle"
       "$mod, comma, exec, dms ipc call settings focusOrToggle"
