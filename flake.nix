@@ -43,7 +43,7 @@
     hyprspace.inputs.hyprland.follows = "hyprland";
 
     # Window splitting utilities
-    hyprsplit.url = "github:shezdy/hyprsplit";
+    hyprsplit.url = "github:shezdy/hyprsplit/v0.54.3";
     hyprsplit.inputs.hyprland.follows = "hyprland";
 
     # Color management
