@@ -98,7 +98,12 @@ in {
 
       package = mkOption {
         type = types.package;
-        default = pkgs.hyprlandPlugins.hyprsplit;
+        default = inputs.hyprsplit.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (old: {
+          postPatch = (old.postPatch or "") + ''
+            substituteInPlace src/main.cpp \
+              --replace-fail '<hyprland/src/helpers/Monitor.hpp>' '<hyprland/src/output/Monitor.hpp>'
+          '';
+        });
         description = "The hyprsplit package to use";
       };
     };
