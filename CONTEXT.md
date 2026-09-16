@@ -172,6 +172,9 @@ history and OSD, so this flake runs none of its own:
 - On hosts with both niri and Hyprland, a user unit
   `WantedBy=graphical-session.target` starts under either compositor. A
   Hyprland-only service would leak into niri sessions.
+- stylix's hyprland target turns on `services.hyprpaper` whenever home-manager's
+  Hyprland is enabled, which put a hyprpaper unit into niri sessions on
+  dostov-dev and competed with DMS's wallpaper; the module forces it off.
 
 That is why the keyring and the shell target start from the `hyprland.start`
 hook rather than from systemd units.

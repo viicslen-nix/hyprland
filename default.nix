@@ -212,6 +212,9 @@ in {
             configType = "lua";
           };
 
+          # Keep forced off: stylix's hyprland target enables it, and the unit would also start under niri.
+          services.hyprpaper.enable = mkForce false;
+
           # Not extraLuaFiles: home-manager writes a nested store path there as literal text.
           xdg.configFile."hypr/hyprsplit/init.lua" = mkIf cfg.hyprsplit.enable {
             source = "${inputs.hyprsplit}/init.lua";
