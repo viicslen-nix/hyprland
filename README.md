@@ -57,9 +57,17 @@ All under `modules.desktop.hyprland`:
   hyprVariables = {};    # defaults: XDG_CURRENT_DESKTOP, XDG_SESSION_DESKTOP, XCURSOR_SIZE (Stylix)
   globalVariables = {};  # defaults: Wayland hints (GDK_BACKEND, QT_QPA_PLATFORM, NIXOS_OZONE_WL, ...)
 
+  layout = "dwindle";       # "dwindle" | "master" | "scrolling" (niri-style columns)
   hyprsplit.enable = true;  # per-monitor workspaces (hyprsplit Lua library)
 }
 ```
+
+`layout = "scrolling"` uses Hyprland's built-in scrolling layout with niri's
+column widths (new columns 95%, presets 30/48/65/95%), and switches the
+3-finger gesture to niri's: horizontal scrolls the columns, vertical changes
+workspace (with a vertical slide). The column settings are applied whatever the
+layout, so a single workspace can scroll with
+`settings.workspace_rule = [{ workspace = "2"; layout = "scrolling"; }]`.
 
 `portals.backend = "gnome"` also enables seahorse, gnome-settings-daemon,
 gnome-remote-desktop and a Settings launcher.
@@ -139,7 +147,7 @@ must exist in exactly one of the files below.
 | `Mod+Shift+F` | Fullscreen |
 | `Mod+T` | Toggle floating |
 | `Mod+P` | Pin |
-| `Mod+R` | Toggle dwindle split |
+| `Mod+R` | dwindle: toggle split; scrolling: cycle column width presets |
 | `Mod+Ctrl+Space` | Toggle group |
 | `Mod+H/J/K/L`, `Mod+Left/Right` | Focus left/down/up/right |
 | `Mod+Tab`, `Mod+Shift+Tab` | Cycle to next/previous window |
@@ -147,8 +155,8 @@ must exist in exactly one of the files below.
 | `Mod+1…0`, `Mod+Shift+1…0` | Workspace 1–10, move window there silently (without hyprsplit) |
 | `Mod+Shift+H/L`, `Mod+Shift+Left/Right` | Focus monitor left/right |
 | `Mod+Shift+Alt+H/J/K/L`, `Mod+Shift+Alt+Left/Right` | Move workspace to monitor |
-| `Mod+W` | Menu: focus `h/j/k/l` |
-| `Mod+Shift+W` | Menu: move window `h/j/k/l` |
+| `Mod+W` | Menu: focus `h/j/k/l`; scrolling adds column width `1–4` and `c` center column |
+| `Mod+Shift+W` | Menu: move window `h/j/k/l`; scrolling moves the column with `h/l` and adds `[`/`]` consume or expel |
 | `Mod+Z` | Menu: resize by 40px `h/j/k/l` |
 | `Mod+A` | Menu: `s` Ferdium, `l` Discord, `e` file manager, `t` terminal, `b` browser, `p` password manager, `n` editor |
 | `Mod+Return` / `Mod+B` / `Mod+E` | Terminal / browser / file manager |
@@ -236,7 +244,8 @@ The binds mirror `flakes/niri`: the same HJKL layers (Mod focus, +Shift monitor,
 menus, the same `X`/`Shift+X`/`Ctrl+X` keys and the same screenshot and
 recording binds. Differences:
 
-- No column widths in the `Mod+W` menu, no dynamic cast
+- Column widths, column moves and the swipe gestures match niri only with
+  `layout = "scrolling"`. No dynamic cast
   (`Mod+Insert`/`Mod+Shift+Insert`/`Mod+Delete`), no hotkey overlay (`Mod+O`)
   and no windowed fullscreen (`Mod+Ctrl+F`). niri's `Mod+Alt+F` (maximize to
   edges) is what `Mod+F` already does here.
@@ -246,7 +255,7 @@ recording binds. Differences:
 - Recording keeps the `w` active-window scope, which niri cannot offer.
 - DMS binds are declared here. niri includes DMS's `dms/binds.kdl`; Hyprland
   would fire both copies of every duplicate, so `dms/binds.lua` is left out.
-- Hyprland-only: `Mod+P` pin, `Mod+R` split, `Mod+G` hyprsplit, the app
+- Hyprland-only: `Mod+P` pin, `Mod+R` split or width presets, `Mod+G` hyprsplit, the app
   scratchpads (`Mod+S`, `Mod+Ctrl+T`, `Mod+Ctrl+V`) and `Mod+D` hyprflows.
 
 ## Checking changes

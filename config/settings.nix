@@ -1,5 +1,11 @@
-{lib, ...}:
-with lib; {
+{
+  lib,
+  osConfig,
+  ...
+}:
+with lib; let
+  scrolling = osConfig.modules.desktop.hyprland.layout == "scrolling";
+in {
   wayland.windowManager.hyprland.settings = {
     monitor = [
       {
@@ -50,18 +56,35 @@ with lib; {
         enabled = true;
         speed = 2;
         bezier = "default";
-        style = "slide";
+        style =
+          if scrolling
+          then "slidevert"
+          else "slide";
       }
     ];
 
     # The gestures.* tuning below does nothing without a gesture.
-    gesture = [
-      {
-        fingers = 3;
-        direction = "horizontal";
-        action = "workspace";
-      }
-    ];
+    gesture =
+      if scrolling
+      then [
+        {
+          fingers = 3;
+          direction = "horizontal";
+          action = "scroll_move";
+        }
+        {
+          fingers = 3;
+          direction = "vertical";
+          action = "workspace";
+        }
+      ]
+      else [
+        {
+          fingers = 3;
+          direction = "horizontal";
+          action = "workspace";
+        }
+      ];
 
     config = {
       general = {
@@ -73,7 +96,7 @@ with lib; {
         allow_tearing = true;
         resize_on_border = true;
         extend_border_grab_area = 20;
-        layout = "dwindle";
+        inherit (osConfig.modules.desktop.hyprland) layout;
         no_focus_fallback = false;
         hover_icon_on_border = true;
 
@@ -188,6 +211,12 @@ with lib; {
 
       dwindle = {
         preserve_split = true;
+      };
+
+      # Set regardless of layout so a workspace_rule can switch a single workspace to scrolling.
+      scrolling = {
+        column_width = 0.95;
+        explicit_column_widths = "0.3, 0.48, 0.65, 0.95";
       };
 
       # Keybind behavior

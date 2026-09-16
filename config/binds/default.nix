@@ -25,11 +25,23 @@
   fileManager = app "fileManager";
   passwordManager = lib.mapNullable (exe: "${exe} --quick-access") (app "passwordManager");
 
-  directionMenu = desc: dsp:
-    mkMenu (map (dir: {
+  scrolling = cfg.layout == "scrolling";
+
+  dispatch = expr: "${hyprctl} dispatch ${lib.escapeShellArg expr}";
+  layoutMsg = key: desc: msg: {
+    inherit key desc;
+    cmd = dispatch ''hl.dsp.layout("${msg}")'';
+  };
+
+  columnWidths = lib.imap1 (i: w: layoutMsg (toString i) "Column width ${toString (builtins.floor (builtins.fromJSON w * 100))}%" "colresize ${w}") (
+    map lib.trim (lib.splitString "," config.wayland.windowManager.hyprland.settings.config.scrolling.explicit_column_widths)
+  );
+
+  directionMenu = desc: dsp: extra:
+    mkMenu ((map (dir: {
         inherit (dir) key;
         desc = "${desc} ${dir.name}";
-        cmd = "${hyprctl} dispatch ${lib.escapeShellArg (dsp dir)}";
+        cmd = dispatch (dsp dir);
       }) [
         {
           key = "h";
@@ -55,7 +67,8 @@
           x = 0;
           y = 40;
         }
-      ]);
+      ])
+    ++ extra);
 
   launcher = mkMenu ([
       {
@@ -119,7 +132,6 @@ in {
       (bind "SUPER + F" ''hl.dsp.window.fullscreen({ mode = "maximized" })'' {})
       (bind "SUPER + SHIFT + F" "hl.dsp.window.fullscreen()" {})
       (bind "SUPER + CTRL + space" "hl.dsp.group.toggle()" {})
-      (bind "SUPER + R" ''hl.dsp.layout("togglesplit")'' {})
       (bind "SUPER + T" "hl.dsp.window.float()" {})
       (bind "SUPER + P" "hl.dsp.window.pin()" {})
 
@@ -150,12 +162,22 @@ in {
       (bind "SUPER + Tab" "hl.dsp.window.cycle_next()" {})
       (bind "SUPER + SHIFT + Tab" "hl.dsp.window.cycle_next({ next = false })" {})
 
-      (bind "SUPER + W" (exec (directionMenu "Move focus" (dir: ''hl.dsp.focus({ direction = "${dir.name}" })''))) {})
-      (bind "SUPER + SHIFT + W" (exec (directionMenu "Move window" (dir: ''hl.dsp.window.move({ direction = "${dir.name}" })''))) {})
-      (bind "SUPER + Z" (exec (directionMenu "Resize window" (dir: "hl.dsp.window.resize({ x = ${toString dir.x}, y = ${toString dir.y}, relative = true })"))) {})
+      (bind "SUPER + W" (exec (directionMenu "Move focus" (dir: ''hl.dsp.focus({ direction = "${dir.name}" })'')
+            (lib.optionals scrolling (columnWidths ++ [(layoutMsg "c" "Center column" "center")])))) {})
+      (bind "SUPER + SHIFT + W" (exec (directionMenu "Move" (dir:
+          if scrolling && dir.y == 0
+          then ''hl.dsp.layout("swapcol ${builtins.substring 0 1 dir.name}")''
+          else ''hl.dsp.window.move({ direction = "${dir.name}" })'')
+        (lib.optionals scrolling [
+          (layoutMsg "[" "Consume or expel left" "consume_or_expel prev")
+          (layoutMsg "]" "Consume or expel right" "consume_or_expel next")
+        ]))) {})
+      (bind "SUPER + Z" (exec (directionMenu "Resize window" (dir: "hl.dsp.window.resize({ x = ${toString dir.x}, y = ${toString dir.y}, relative = true })") [])) {})
 
       (bind "SUPER + A" (exec launcher) {})
     ]
+    ++ lib.optional (cfg.layout == "dwindle") (bind "SUPER + R" ''hl.dsp.layout("togglesplit")'' {})
+    ++ lib.optional scrolling (bind "SUPER + R" ''hl.dsp.layout("colresize +conf")'' {})
     ++ lib.optional (terminal != null) (bind "SUPER + Return" (exec terminal) {})
     ++ lib.optional (browser != null) (bind "SUPER + B" (exec browser) {})
     ++ lib.optional (fileManager != null) (bind "SUPER + E" (exec fileManager) {})

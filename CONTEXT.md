@@ -138,6 +138,18 @@ niri. On niri, DMS's `binds.kdl` owns `Mod+M` (process list) and overrides
 ours, so the scratchpad keys moved there first. Hyprland gives `Mod+M` to the
 DMS process list too, declared with the other DMS binds.
 
+## Scrolling layout
+
+`layout = "scrolling"` is Hyprland's built-in scrolling layout, tuned and bound
+to feel like niri. Two things are not obvious from the binds:
+
+- `hl.dsp.window.move` left/right does not move a column there. It takes the
+  window out of its column and adds it to the neighbouring one. niri's
+  `Mod+Shift+W` `h`/`l` move the whole column, so under scrolling those two
+  entries send `swapcol l/r`, and consume/expel get their own `[`/`]` keys.
+- `scrolling.*` is set for every layout, because a `workspace_rule` can put a
+  single workspace on scrolling while the default stays dwindle.
+
 ## hyprctl speaks Lua
 
 `hyprctl dispatch <arg>` runs `return hl.dispatch(<arg>)`, so a legacy
@@ -234,3 +246,5 @@ a real session:
 - hyprsplit on two or more monitors.
 - `hyprctl dispatch` and `hyprctl eval` run from the wlr-which-key menus.
 - A pad's first start opening `special:<pad>` with the window focused.
+- The scrolling layout's menu layout messages, the `scroll_move` gesture and
+  vertical workspace swipes.

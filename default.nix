@@ -125,6 +125,12 @@ in {
       description = "Global environment variables for Wayland/Hyprland";
     };
 
+    layout = mkOption {
+      type = types.enum ["dwindle" "master" "scrolling"];
+      default = "dwindle";
+      description = "Tiling layout; scrolling gives niri-style columns, width presets and a scroll gesture";
+    };
+
     hyprsplit.enable = mkOption {
       type = types.bool;
       default = true;
