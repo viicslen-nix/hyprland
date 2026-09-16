@@ -1,24 +1,23 @@
-{
-  pkgs,
-  lib,
-  ...
-}: let
-  work = import ./work.nix {inherit pkgs;};
+{hlLib, ...}: let
+  inherit (hlLib) bind;
 in {
   wayland.windowManager.hyprland = {
     settings.bind = [
-      "$mod, D, submap, hyprflows"
+      (bind "SUPER + D" ''hl.dsp.submap("hyprflows")'' {})
     ];
 
-    extraConfig = lib.mkAfter ''
-      # apps
-      submap = hyprflows
-
-      bind = , 1, exec, ${lib.getExe work}
-
-      bind = , escape, submap, reset
-      bind = , catchall, submap, reset
-      submap = reset
-    '';
+    submaps.hyprflows = {
+      onDispatch = "reset";
+      settings.bind = [
+        (bind "1" ''
+          function()
+            for _, app in ipairs({ { "zen-beta", 1 }, { "legcord", 11 }, { "kitty", 11 }, { "code", 12 }, { "kitty", 12 } }) do
+              hl.exec_cmd(app[1], { workspace = app[2] .. " silent" })
+            end
+          end'' {})
+        (bind "escape" ''hl.dsp.submap("reset")'' {})
+        (bind "catchall" ''hl.dsp.submap("reset")'' {})
+      ];
+    };
   };
 }

@@ -1,28 +1,55 @@
 {...}: {
   wayland.windowManager.hyprland.settings = {
-    windowrule = [
+    window_rule = [
       # Floating windows
-      "float on, match:tag floating-window"
-      "center on, match:tag floating-window"
-      "size 875 600, match:tag floating-window"
+      {
+        match.tag = "floating-window";
+        float = true;
+        center = true;
+        size = [875 600];
+      }
 
-      "tag +floating-window, match:class (org.omarchy.bluetui|org.omarchy.impala|org.omarchy.wiremix|org.omarchy.btop|org.omarchy.terminal|org.omarchy.bash|org.gnome.NautilusPreviewer|org.gnome.Evince|Omarchy|About|TUI.float|imv|mpv)"
-      "tag +floating-window, match:class (xdg-desktop-portal-gtk|sublime_text|DesktopEditors|org.gnome.Nautilus), match:title ^(Open.*Files?|Open [Ff]older.*|Save.*Files?|Save.*As|Save|All Files|.*wants to [open|save].*|[Cc]hoose.*)"
-      "float on, match:class org.gnome.Calculator"
+      {
+        match.class = "(org.omarchy.bluetui|org.omarchy.impala|org.omarchy.wiremix|org.omarchy.btop|org.omarchy.terminal|org.omarchy.bash|org.gnome.NautilusPreviewer|org.gnome.Evince|Omarchy|About|TUI.float|imv|mpv)";
+        tag = "+floating-window";
+      }
+      {
+        match = {
+          class = "(xdg-desktop-portal-gtk|sublime_text|DesktopEditors|org.gnome.Nautilus)";
+          title = "^(Open.*Files?|Open [Ff]older.*|Save.*Files?|Save.*As|Save|All Files|.*wants to [open|save].*|[Cc]hoose.*)";
+        };
+        tag = "+floating-window";
+      }
+      {
+        match.class = "org.gnome.Calculator";
+        float = true;
+      }
 
       # Fullscreen screensaver
-      "fullscreen on, match:class org.omarchy.screensaver"
-      "float on, match:class org.omarchy.screensaver"
+      {
+        match.class = "org.omarchy.screensaver";
+        fullscreen = true;
+        float = true;
+      }
 
       # No transparency on media windows
-      "tag -default-opacity, match:class ^(zoom|vlc|mpv|org.kde.kdenlive|com.obsproject.Studio|com.github.PintaProject.Pinta|imv|org.gnome.NautilusPreviewer)$"
-      "opacity 1 1, match:class ^(zoom|vlc|mpv|org.kde.kdenlive|com.obsproject.Studio|com.github.PintaProject.Pinta|imv|org.gnome.NautilusPreviewer)$"
+      {
+        match.class = "^(zoom|vlc|mpv|org.kde.kdenlive|com.obsproject.Studio|com.github.PintaProject.Pinta|imv|org.gnome.NautilusPreviewer)$";
+        tag = "-default-opacity";
+        opacity = "1 1";
+      }
 
       # Popped window rounding
-      "rounding 8, match:tag pop"
+      {
+        match.tag = "pop";
+        rounding = 8;
+      }
 
       # Prevent idle while open
-      "idle_inhibit always, match:tag noidle"
+      {
+        match.tag = "noidle";
+        idle_inhibit = "always";
+      }
     ];
   };
 }

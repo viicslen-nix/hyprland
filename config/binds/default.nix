@@ -3,10 +3,12 @@
   config,
   lib,
   wlLib,
+  hlLib,
   ...
 }: let
   cfg = osConfig.modules.desktop.hyprland;
   inherit (wlLib) mkMenu;
+  inherit (hlLib) bind exec;
 
   hyprctl = lib.getExe' osConfig.programs.hyprland.package "hyprctl";
 
@@ -23,30 +25,37 @@
   fileManager = app "fileManager";
   passwordManager = lib.mapNullable (exe: "${exe} --quick-access") (app "passwordManager");
 
-  directionMenu = desc: dispatcher: args:
-    mkMenu (lib.zipListsWith (dir: arg: {
+  directionMenu = desc: dsp:
+    mkMenu (map (dir: {
         inherit (dir) key;
         desc = "${desc} ${dir.name}";
-        cmd = "${hyprctl} dispatch ${dispatcher} ${arg}";
+        cmd = "${hyprctl} dispatch ${lib.escapeShellArg (dsp dir)}";
       }) [
         {
           key = "h";
           name = "left";
+          x = -40;
+          y = 0;
         }
         {
           key = "l";
           name = "right";
+          x = 40;
+          y = 0;
         }
         {
           key = "k";
           name = "up";
+          x = 0;
+          y = -40;
         }
         {
           key = "j";
           name = "down";
+          x = 0;
+          y = 40;
         }
-      ]
-      args);
+      ]);
 
   launcher = mkMenu ([
       {
@@ -88,80 +97,68 @@
       }
     ]);
 
-  workspaces = lib.optionals (!cfg.hyprsplit.enable) (builtins.concatLists (builtins.genList (
-      x: let
-        ws = let
-          c = (x + 1) / 10;
-        in
-          builtins.toString (x + 1 - (c * 10));
-      in [
-        "$mod, ${ws}, workspace, ${toString (x + 1)}"
-        "$mod SHIFT, ${ws}, movetoworkspacesilent, ${toString (x + 1)}"
-      ]
-    )
-    10));
+  workspaces = lib.optionals (!cfg.hyprsplit.enable) (lib.concatMap (i: let
+    key = toString (lib.mod i 10);
+  in [
+    (bind "SUPER + ${key}" "hl.dsp.focus({ workspace = ${toString i} })" {})
+    (bind "SUPER + SHIFT + ${key}" "hl.dsp.window.move({ workspace = ${toString i}, follow = false })" {})
+  ]) (lib.range 1 10));
 in {
   imports = [
     ./screenshots.nix
     ./screenrecording.nix
   ];
 
-  wayland.windowManager.hyprland.settings = {
-    "$mod" = "SUPER";
+  wayland.windowManager.hyprland.settings.bind =
+    [
+      (bind "SUPER + mouse:272" "hl.dsp.window.drag()" {mouse = true;})
+      (bind "SUPER + mouse:273" "hl.dsp.window.resize()" {mouse = true;})
+      (bind "SUPER + ALT + mouse:272" "hl.dsp.window.resize()" {mouse = true;})
 
-    bindm = [
-      "$mod, mouse:272, movewindow"
-      "$mod, mouse:273, resizewindow"
-      "$mod ALT, mouse:272, resizewindow"
-    ];
+      (bind "SUPER + Q" "hl.dsp.window.close()" {})
+      (bind "SUPER + F" ''hl.dsp.window.fullscreen({ mode = "maximized" })'' {})
+      (bind "SUPER + SHIFT + F" "hl.dsp.window.fullscreen()" {})
+      (bind "SUPER + CTRL + space" "hl.dsp.group.toggle()" {})
+      (bind "SUPER + R" ''hl.dsp.layout("togglesplit")'' {})
+      (bind "SUPER + T" "hl.dsp.window.float()" {})
+      (bind "SUPER + P" "hl.dsp.window.pin()" {})
 
-    bind =
-      [
-        "$mod, Q, killactive,"
-        "$mod, F, fullscreen, 1"
-        "$mod SHIFT, F, fullscreen, 0"
-        "$mod CTRL, space, togglegroup,"
-        "$mod, R, layoutmsg, togglesplit"
-        "$mod, T, togglefloating,"
-        "$mod, P, pin,"
+      (bind "SUPER + H" ''hl.dsp.focus({ direction = "left" })'' {})
+      (bind "SUPER + L" ''hl.dsp.focus({ direction = "right" })'' {})
+      (bind "SUPER + K" ''hl.dsp.focus({ direction = "up" })'' {})
+      (bind "SUPER + J" ''hl.dsp.focus({ direction = "down" })'' {})
+      (bind "SUPER + Left" ''hl.dsp.focus({ direction = "left" })'' {})
+      (bind "SUPER + Right" ''hl.dsp.focus({ direction = "right" })'' {})
 
-        "$mod, H, movefocus, l"
-        "$mod, L, movefocus, r"
-        "$mod, K, movefocus, u"
-        "$mod, J, movefocus, d"
-        "$mod, Left, movefocus, l"
-        "$mod, Right, movefocus, r"
+      (bind "SUPER + Up" ''hl.dsp.focus({ workspace = "m-1" })'' {})
+      (bind "SUPER + Down" ''hl.dsp.focus({ workspace = "m+1" })'' {})
+      (bind "SUPER + CTRL + H" ''hl.dsp.focus({ workspace = "m-1" })'' {})
+      (bind "SUPER + CTRL + L" ''hl.dsp.focus({ workspace = "m+1" })'' {})
 
-        "$mod, Up, workspace, m-1"
-        "$mod, Down, workspace, m+1"
-        "$mod CTRL, H, workspace, m-1"
-        "$mod CTRL, L, workspace, m+1"
+      (bind "SUPER + SHIFT + Left" ''hl.dsp.focus({ monitor = "l" })'' {})
+      (bind "SUPER + SHIFT + Right" ''hl.dsp.focus({ monitor = "r" })'' {})
+      (bind "SUPER + SHIFT + H" ''hl.dsp.focus({ monitor = "l" })'' {})
+      (bind "SUPER + SHIFT + L" ''hl.dsp.focus({ monitor = "r" })'' {})
 
-        "$mod SHIFT, Left, focusmonitor, l"
-        "$mod SHIFT, Right, focusmonitor, r"
-        "$mod SHIFT, H, focusmonitor, l"
-        "$mod SHIFT, L, focusmonitor, r"
+      (bind "SUPER + SHIFT + ALT + Left" ''hl.dsp.workspace.move({ monitor = "l" })'' {})
+      (bind "SUPER + SHIFT + ALT + Right" ''hl.dsp.workspace.move({ monitor = "r" })'' {})
+      (bind "SUPER + SHIFT + ALT + H" ''hl.dsp.workspace.move({ monitor = "l" })'' {})
+      (bind "SUPER + SHIFT + ALT + L" ''hl.dsp.workspace.move({ monitor = "r" })'' {})
+      (bind "SUPER + SHIFT + ALT + K" ''hl.dsp.workspace.move({ monitor = "u" })'' {})
+      (bind "SUPER + SHIFT + ALT + J" ''hl.dsp.workspace.move({ monitor = "d" })'' {})
 
-        "$mod SHIFT ALT, Left, movecurrentworkspacetomonitor, l"
-        "$mod SHIFT ALT, Right, movecurrentworkspacetomonitor, r"
-        "$mod SHIFT ALT, H, movecurrentworkspacetomonitor, l"
-        "$mod SHIFT ALT, L, movecurrentworkspacetomonitor, r"
-        "$mod SHIFT ALT, K, movecurrentworkspacetomonitor, u"
-        "$mod SHIFT ALT, J, movecurrentworkspacetomonitor, d"
+      (bind "SUPER + Tab" "hl.dsp.window.cycle_next()" {})
+      (bind "SUPER + SHIFT + Tab" "hl.dsp.window.cycle_next({ next = false })" {})
 
-        "$mod, Tab, cyclenext,"
-        "$mod SHIFT, Tab, cyclenext, prev"
+      (bind "SUPER + W" (exec (directionMenu "Move focus" (dir: ''hl.dsp.focus({ direction = "${dir.name}" })''))) {})
+      (bind "SUPER + SHIFT + W" (exec (directionMenu "Move window" (dir: ''hl.dsp.window.move({ direction = "${dir.name}" })''))) {})
+      (bind "SUPER + Z" (exec (directionMenu "Resize window" (dir: "hl.dsp.window.resize({ x = ${toString dir.x}, y = ${toString dir.y}, relative = true })"))) {})
 
-        "$mod, W, exec, ${directionMenu "Move focus" "movefocus" ["l" "r" "u" "d"]}"
-        "$mod SHIFT, W, exec, ${directionMenu "Move window" "movewindow" ["l" "r" "u" "d"]}"
-        "$mod, Z, exec, ${directionMenu "Resize window" "resizeactive" ["-40 0" "40 0" "0 -40" "0 40"]}"
-
-        "$mod, A, exec, ${launcher}"
-      ]
-      ++ lib.optional (terminal != null) "$mod, Return, exec, ${terminal}"
-      ++ lib.optional (browser != null) "$mod, B, exec, ${browser}"
-      ++ lib.optional (fileManager != null) "$mod, E, exec, ${fileManager}"
-      ++ lib.optional (passwordManager != null) "CTRL SHIFT, Space, exec, ${passwordManager}"
-      ++ workspaces;
-  };
+      (bind "SUPER + A" (exec launcher) {})
+    ]
+    ++ lib.optional (terminal != null) (bind "SUPER + Return" (exec terminal) {})
+    ++ lib.optional (browser != null) (bind "SUPER + B" (exec browser) {})
+    ++ lib.optional (fileManager != null) (bind "SUPER + E" (exec fileManager) {})
+    ++ lib.optional (passwordManager != null) (bind "CTRL + SHIFT + space" (exec passwordManager) {})
+    ++ workspaces;
 }

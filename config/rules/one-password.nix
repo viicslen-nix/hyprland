@@ -1,8 +1,11 @@
 {...}: {
   wayland.windowManager.hyprland.settings = {
-    windowrule = [
-      "no_screen_share on, match:class ^(1[pP]assword)$"
-      "tag +floating-window, match:class ^(1[pP]assword)$"
+    window_rule = [
+      {
+        match.class = "^(1[pP]assword)$";
+        no_screen_share = true;
+        tag = "+floating-window";
+      }
     ];
   };
 }

@@ -1,32 +1,13 @@
-{pkgs, ...}: let
-  workspaces = builtins.concatLists (builtins.genList (
-      x: let
-        ws = let
-          c = (x + 1) / 10;
-        in
-          builtins.toString (x + 1 - (c * 10));
-      in [
-        "$mod, ${ws}, split:workspace, ${toString (x + 1)}"
-        "$mod SHIFT, ${ws}, split:movetoworkspacesilent, ${toString (x + 1)}"
-      ]
-    )
-    10);
-in {
-  wayland.windowManager.hyprland = {
-    # Keep this from nixpkgs: a plugin built against any other hyprland fails the plugin API hash check.
-    plugins = [pkgs.hyprlandPlugins.hyprsplit];
+{
+  # Keep these binds in their own required file: a hyprsplit load error then stays out of hyprland.lua.
+  wayland.windowManager.hyprland.extraLuaFiles.hyprsplit-binds = ''
+    local hs = require("hyprsplit")
 
-    settings = {
-      plugin.hyprsplit = {
-        num_workspaces = 10;
-        persistent_workspaces = false;
-      };
+    for i = 1, 10 do
+      hl.bind("SUPER + " .. i % 10, hs.dsp.focus({ workspace = i }))
+      hl.bind("SUPER + SHIFT + " .. i % 10, hs.dsp.window.move({ workspace = i, follow = false }))
+    end
 
-      bind =
-        [
-          "$mod, G, split:grabroguewindows"
-        ]
-        ++ workspaces;
-    };
-  };
+    hl.bind("SUPER + G", hs.dsp.grab_rogue_windows())
+  '';
 }

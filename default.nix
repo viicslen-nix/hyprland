@@ -128,7 +128,7 @@ in {
     hyprsplit.enable = mkOption {
       type = types.bool;
       default = true;
-      description = "Enable hyprsplit plugin and keybinds";
+      description = "Enable per-monitor workspaces through the hyprsplit Lua library and its keybinds";
     };
   };
 
@@ -160,6 +160,8 @@ in {
         enable = true;
         withUWSM = true;
         xwayland.enable = true;
+        package = inputs.hyprland-git.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
+        portalPackage = inputs.hyprland-git.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
       };
 
       environment.systemPackages = with pkgs; [
@@ -193,6 +195,10 @@ in {
       home-manager.sharedModules = [
         {
           _module.args.wlLib = inputs.viicslen-lib.lib.wayland {inherit pkgs lib;};
+          _module.args.hlLib = {
+            bind = keys: dsp: opts: {_args = [keys (lib.generators.mkLuaInline dsp)] ++ lib.optional (opts != {}) opts;};
+            exec = cmd: "hl.dsp.exec_cmd(${lib.generators.toLua {} cmd})";
+          };
           imports = [
             ./config
             ./components
@@ -203,8 +209,12 @@ in {
             package = null;
             portalPackage = null;
             systemd.enable = false;
-            # Keep explicit: home-manager defaults to lua from stateVersion 26.05, and this config is hyprlang.
-            configType = "hyprlang";
+            configType = "lua";
+          };
+
+          # Not extraLuaFiles: home-manager writes a nested store path there as literal text.
+          xdg.configFile."hypr/hyprsplit/init.lua" = mkIf cfg.hyprsplit.enable {
+            source = "${inputs.hyprsplit}/init.lua";
           };
 
           xdg.desktopEntries."org.gnome.Settings" = mkIf (cfg.portals.backend == "gnome") {

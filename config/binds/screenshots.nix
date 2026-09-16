@@ -3,9 +3,11 @@
   pkgs,
   lib,
   wlLib,
+  hlLib,
   ...
 }: let
   inherit (wlLib) mkMenu;
+  inherit (hlLib) bind exec;
 
   grim = lib.getExe pkgs.grim;
   hyprctl = lib.getExe' osConfig.programs.hyprland.package "hyprctl";
@@ -96,7 +98,7 @@
   '';
 in {
   wayland.windowManager.hyprland.settings.bind = [
-    "$mod SHIFT, S, exec, ${mkMenu [
+    (bind "SUPER + SHIFT + S" (exec (mkMenu [
       {
         key = "s";
         desc = "Save and copy to clipboard";
@@ -117,8 +119,8 @@ in {
         desc = "Capture and crop with Satty";
         cmd = sattyEdit;
       }
-    ]}"
-    "$mod CTRL, S, exec, ${saveShot scope.w}"
-    "$mod CTRL SHIFT, S, exec, ${saveShot scope.m}"
+    ])) {})
+    (bind "SUPER + CTRL + S" (exec (saveShot scope.w)) {})
+    (bind "SUPER + CTRL + SHIFT + S" (exec (saveShot scope.m)) {})
   ];
 }

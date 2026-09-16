@@ -1,21 +1,42 @@
 {...}: {
   wayland.windowManager.hyprland.settings = {
-    windowrule = [
+    window_rule = [
       # JetBrains IDEs opacity
-      "opacity 0.95 0.95, match:class ^(.*jetbrains.*)$"
+      {
+        match.class = "^(.*jetbrains.*)$";
+        opacity = "0.95 0.95";
+      }
 
       # Fix splash screen showing in weird places and prevent annoying focus takeovers
-      "tag +jetbrains-splash, match:class ^jetbrains-.+$, match:title ^splash$"
-      "float on, match:tag jetbrains-splash"
-      "center on, match:tag jetbrains-splash"
-      "no_focus on, match:tag jetbrains-splash"
-      "no_dim on, match:tag jetbrains-splash"
+      {
+        match = {
+          class = "^jetbrains-.+$";
+          title = "^splash$";
+        };
+        tag = "+jetbrains-splash";
+      }
+      {
+        match.tag = "jetbrains-splash";
+        float = true;
+        center = true;
+        no_focus = true;
+        no_dim = true;
+      }
 
       # Center popups/find windows
-      "tag +jetbrains, match:class ^jetbrains-.+$, match:title ^$"
-      "center on, match:tag jetbrains"
-      "no_dim on, match:tag jetbrains"
-      "min_size monitor_w*0.5 monitor_h*0.5, match:tag jetbrains"
+      {
+        match = {
+          class = "^jetbrains-.+$";
+          title = "^$";
+        };
+        tag = "+jetbrains";
+      }
+      {
+        match.tag = "jetbrains";
+        center = true;
+        no_dim = true;
+        min_size = ["monitor_w*0.5" "monitor_h*0.5"];
+      }
     ];
   };
 }

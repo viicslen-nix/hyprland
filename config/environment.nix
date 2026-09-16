@@ -14,8 +14,5 @@ in {
     "uwsm/env-hyprland".text = concatMapAttrsStringSep "\n" (name: value: "export ${name}=${lib.escapeShellArg value}") (filterAttrs (n: v: v != null) hyprConfig.hyprVariables);
   };
 
-  wayland.windowManager.hyprland.settings.env = concatLists [
-    (mapAttrsToList (name: value: "${name},${value}") (filterAttrs (n: v: v != null) hyprConfig.globalVariables))
-    (mapAttrsToList (name: value: "${name},${value}") (filterAttrs (n: v: v != null) hyprConfig.hyprVariables))
-  ];
+  wayland.windowManager.hyprland.settings.env = mapAttrsToList (name: value: {_args = [name value];}) (filterAttrs (n: v: v != null) (hyprConfig.globalVariables // hyprConfig.hyprVariables));
 }
