@@ -1,392 +1,217 @@
-# Hyprland Desktop Environment Module
+# Hyprland
 
-A comprehensive NixOS flake for configuring the Hyprland Wayland compositor with a complete desktop environment setup.
-
-## Features
-
-- **Hyprland Compositor**: Modern tiling Wayland compositor with animations and effects
-- **Portal Integration**: Properly configured XDG desktop portals for file pickers, screen sharing, and desktop integration
-- **Session Management**: Wallpaper (hyprpaper), screen locking (hyprlock), and idle management (hypridle)
-- **UI Components**: Noctalia shell, Rofi launcher, SwayNC notifications, and more
-- **Plugin System**: Extensible with Hyprland plugins (hyprexpo, hyprsplit, hyprspace, hyprchroma)
-- **Screenshot Tools**: Integrated grimblast, satty, and flameshot
-- **Visual Continuity**: GTK-first approach for consistent theming across applications
-
-## Module Options
-
-### Basic Configuration
+NixOS module for a Hyprland session started through UWSM, with
+DankMaterialShell (DMS) as the shell. Every package comes from nixpkgs
+(Hyprland 0.56 series, hyprlang config); the only inputs are `nixpkgs` and
+`viicslen-lib`. Why it is built this way is in [CONTEXT.md](./CONTEXT.md).
 
 ```nix
-modules.desktop.hyprland = {
-  enable = true;                # Enable Hyprland desktop environment
-  package = <derivation>;       # Hyprland package (default: from flake input)
-  portalPackage = <derivation>; # Portal package (default: from flake input)
-};
+imports = [inputs.hyprland.nixosModules.default];
+modules.desktop.hyprland.enable = true;
 ```
 
-### Portal Configuration
+Settings, binds and rules are applied through `home-manager.sharedModules`, so
+they need home-manager loaded.
 
-The portal system handles file choosers, screen sharing, and other desktop integration features:
+## Options
 
-```nix
-modules.desktop.hyprland.portals = {
-  enable = true;                # Enable XDG desktop portals (default: true)
-
-  backend = "gtk";              # Portal backend: "gtk" | "gnome" | "qt"
-                                # - gtk: Lightweight, recommended for visual continuity
-                                # - gnome: Full GNOME features (heavier)
-                                # - qt: KDE/Qt integration
-
-  xdgOpenUsePortal = true;      # Use portals for xdg-open (default: true)
-
-  extraBackends = [ "gnome" ];  # Additional backends to install (default: [])
-};
-```
-
-### Environment Variables
-
-```nix
-modules.desktop.hyprland = {
-  # Hyprland-specific variables
-  hyprVariables = {
-    XDG_CURRENT_DESKTOP = "Hyprland";
-    XDG_SESSION_DESKTOP = "Hyprland";
-    XCURSOR_SIZE = "24";
-  };
-
-  # Global Wayland environment variables
-  globalVariables = {
-    XDG_SESSION_TYPE = "wayland";
-    GDK_BACKEND = "wayland,x11";
-    MOZ_ENABLE_WAYLAND = "1";
-
-    # Add your own custom variables
-    MY_CUSTOM_VAR = "value";
-
-    # Remove default variables by setting them to null
-    SDL_VIDEODRIVER = null;
-  };
-};
-```
-
-## Usage
-
-### In your NixOS configuration
+All under `modules.desktop.hyprland`:
 
 ```nix
 {
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    hyprland-flake.url = "path:./flakes/hyprland";
+  enable = true;        # programs.hyprland (UWSM, XWayland), gnome-keyring, Adwaita themes
+
+  # Packages the binds launch. null falls back to home-manager's
+  # modules.functionality.defaults.<name>; with neither, the bind and its
+  # Mod+A entry are left out. The password manager runs with --quick-access.
+  terminal = null;
+  browser = null;
+  editor = null;
+  fileManager = null;
+  passwordManager = null;
+
+  portals = {
+    enable = true;
+    backend = "gtk";     # "gtk" | "gnome" | "qt"; paired with the hyprland portal
+    extraBackends = [];  # further backends to install
+    xdgOpenUsePortal = true;
   };
 
-  outputs = {nixpkgs, hyprland-flake, ...}: {
-    nixosConfigurations.yourHost = nixpkgs.lib.nixosSystem {
-      modules = [
-        hyprland-flake.nixosModules.default
-        {
-          modules.desktop.hyprland = {
-            enable = true;
-            portals.backend = "gtk";  # Use GTK portals for consistency
-          };
-        }
-      ];
-    };
-  };
+  hyprVariables = {};    # defaults: XDG_CURRENT_DESKTOP, XDG_SESSION_DESKTOP, XCURSOR_SIZE (Stylix)
+  globalVariables = {};  # defaults: Wayland hints (GDK_BACKEND, QT_QPA_PLATFORM, NIXOS_OZONE_WL, ...)
+
+  hyprsplit.enable = true;  # per-monitor workspaces
 }
 ```
 
-## Portal Backend Comparison
+`portals.backend = "gnome"` also enables seahorse, gnome-settings-daemon,
+gnome-remote-desktop and a Settings launcher.
 
-| Backend | Size   | Features                           | Use Case                    |
-|---------|--------|------------------------------------|-----------------------------|
-| **gtk** | Light  | File picker, URI handling          | Recommended for most setups |
-| gnome   | Heavy  | + Screen sharing, GNOME integration| If you use GNOME apps       |
-| qt      | Medium | KDE/Qt file picker                 | Qt-heavy environments       |
+Both variable sets become Hyprland `env =` lines and are written to UWSM's env
+files, which UWSM sources before the compositor starts:
+`~/.config/uwsm/env` (`globalVariables`) and `~/.config/uwsm/env-hyprland`
+(`hyprVariables`). `globalVariables` also lands in `home.sessionVariables`.
+Null values are skipped, so `lib.mkForce null` drops a default.
 
-**Recommendation**: Use `gtk` for visual continuity and lightweight operation. Only use `gnome` if you specifically need GNOME screensharing or have GNOME-specific requirements.
+## Session
 
-## Available Components
+Hyprland's `exec-once` starts `gnome-keyring-daemon` (secrets),
+`desktop-shell.target` and `pypr`. The target is declared by the root repo's
+desktop shell module; the selected shell binds itself to it.
 
-### UI Components
+DMS supplies the polkit agent, idle and lock, wallpaper, clipboard history, OSD
+and notifications. This flake adds only its binds, window rule and layer rules,
+and only while `modules.desktop.shell` is `"dms"` (or unset).
 
-- **Noctalia**: Modern status bar and shell (primary, replaces Waybar)
-- **Rofi**: Application launcher with custom themes
-- **SwayNC**: Notification daemon with customizable styles
-- **Wlogout**: Logout/power menu
-- **Workspaces**: Workspace indicators
+## Structure
 
-### Session Management
+```text
+.
+├── flake.nix               # nixosModules.default, eval-only check
+├── Justfile                # just check
+├── default.nix             # options, programs.hyprland, portals, home-manager wiring
+├── config/
+│   ├── settings.nix        # compositor settings, exec-once
+│   ├── environment.nix     # hyprVariables/globalVariables -> env, UWSM env files
+│   ├── rules.nix           # workspace and window rules
+│   ├── rules/              # system, jetbrains, one-password
+│   ├── binds/
+│   │   ├── default.nix     # core binds, Mod+W/Shift+W/Z/A menus, digits without hyprsplit
+│   │   ├── screenshots.nix
+│   │   └── screenrecording.nix
+│   └── plugins/
+│       ├── default.nix     # imports hyprsplit.nix when hyprsplit.enable
+│       └── hyprsplit.nix
+└── components/
+    ├── session/pyprland.nix   # scratchpads, minimize
+    ├── tools/flameshot.nix    # flameshot.ini, Stylix colours
+    └── ui/
+        ├── dms/default.nix    # DMS binds and layer rules
+        └── workspaces/        # hyprflows submap, work.nix layout script
+```
 
-- **Hyprpaper**: Wallpaper manager (integrates with Stylix)
-- **Hyprlock**: Lock screen with customization
-- **Hypridle**: Idle management with suspend/lock timeouts
-- **Pyprland**: Scratchpads and window extensions
+## Keybinds
 
-### Tools
+`Mod` is Super. Hyprland fires every bind on a matching combo, so each combo
+must exist in exactly one of the files below.
 
-- **Grimblast**: Screenshot utility (Hyprland-contrib)
-- **Flameshot**: Feature-rich screenshot tool
-- **Satty**: Screenshot annotation
-- **SwayOSD**: On-screen display for volume/brightness
+**`config/binds/default.nix`**
+
+| Keys | Action |
+|------|--------|
+| `Mod+Q` | Close window |
+| `Mod+F` | Maximize |
+| `Mod+Shift+F` | Fullscreen |
+| `Mod+T` | Toggle floating |
+| `Mod+P` | Pin |
+| `Mod+R` | Toggle dwindle split |
+| `Mod+Ctrl+Space` | Toggle group |
+| `Mod+H/J/K/L`, `Mod+Left/Right` | Focus left/down/up/right |
+| `Mod+Tab`, `Mod+Shift+Tab` | Cycle to next/previous window |
+| `Mod+Up/Down`, `Mod+Ctrl+H/L` | Previous/next workspace on this monitor |
+| `Mod+1…0`, `Mod+Shift+1…0` | Workspace 1–10, move window there silently (without hyprsplit) |
+| `Mod+Shift+H/L`, `Mod+Shift+Left/Right` | Focus monitor left/right |
+| `Mod+Shift+Alt+H/J/K/L`, `Mod+Shift+Alt+Left/Right` | Move workspace to monitor |
+| `Mod+W` | Menu: focus `h/j/k/l` |
+| `Mod+Shift+W` | Menu: move window `h/j/k/l` |
+| `Mod+Z` | Menu: resize by 40px `h/j/k/l` |
+| `Mod+A` | Menu: `s` Ferdium, `l` Discord, `e` file manager, `t` terminal, `b` browser, `p` password manager, `n` editor |
+| `Mod+Return` / `Mod+B` / `Mod+E` | Terminal / browser / file manager |
+| `Ctrl+Shift+Space` | Password manager quick access |
+| `Mod+LMB` | Move window |
+| `Mod+RMB`, `Mod+Alt+LMB` | Resize window |
+
+**`config/plugins/hyprsplit.nix`** (when `hyprsplit.enable`)
+
+| Keys | Action |
+|------|--------|
+| `Mod+1…0`, `Mod+Shift+1…0` | This monitor's workspace 1–10, move window there silently |
+| `Mod+G` | Grab windows stranded on invalid workspaces |
+
+**`config/binds/screenshots.nix`, `config/binds/screenrecording.nix`**
+
+| Keys | Action |
+|------|--------|
+| `Mod+Shift+S` | Screenshot menu |
+| `Mod+Ctrl+S` | Save and copy the active window |
+| `Mod+Ctrl+Shift+S` | Save and copy the focused monitor |
+| `Mod+Shift+R` | Recording menu |
+
+**`components/session/pyprland.nix`**
+
+| Keys | Action |
+|------|--------|
+| `Mod+M` | Minimize to / restore from the `minimized` special workspace |
+| `Mod+Ctrl+M` | Show the `minimized` special workspace |
+| `Mod+Ctrl+T` | Terminal scratchpad |
+| `Mod+Ctrl+V` | Volume scratchpad |
+| `Mod+S` | Scratchpad menu: `b` Bluetooth, `s` Ferdium, `n` Obsidian, `m` Messages, `w` WhatsApp, `g` Gemini |
+
+**`components/ui/workspaces/default.nix`**
+
+| Keys | Action |
+|------|--------|
+| `Mod+D` | `hyprflows` submap: `1` opens the work layout, any other key leaves |
+
+**`components/ui/dms/default.nix`** (DMS only)
+
+| Keys | Action |
+|------|--------|
+| `Mod+Space` | Launcher |
+| `Mod+V` | Clipboard history |
+| `Mod+Comma` | DMS settings |
+| `Mod+N` / `Mod+Shift+N` | Notifications / notepad |
+| `Mod+Y` | Wallpaper dash |
+| `Mod+Ctrl+Tab` | Overview |
+| `Mod+Ctrl+Shift+L` | Lock |
+| `Mod+Ctrl+Shift+R` | Restart `dms.service` |
+| `Ctrl+Alt+Delete` | Process list |
+| Play, Prev, Next, Mute, MicMute | Media and mute (also while locked) |
+| Volume and brightness keys | ±3% volume, ±5% brightness (repeat, also while locked) |
+
+### Screenshot menu (`Mod+Shift+S`)
+
+- `s` save to `~/Pictures/Screenshots/screenshot-<date>-<time>.png` and copy,
+  then pick a scope
+- `c` copy only, then pick a scope
+- `f` Flameshot GUI
+- `e` capture the focused monitor and crop it in Satty
+
+Scopes: `a` all monitors, `m` focused monitor, `w` active window, `r` region
+(slurp). The first three wait 0.8s for the menu to close.
+
+### Recording menu (`Mod+Shift+R`)
+
+`a` focused monitor, `m` pick a monitor (wofi), `w` active window, `r` region
+(slurp), `q` stop. wl-screenrec writes
+`~/Videos/Recordings/recording-<date>-<time>.mp4` and notifies on start and
+save.
+
+### Unified keymap
+
+The binds mirror `flakes/niri`: the same HJKL layers (Mod focus, +Shift monitor,
++Ctrl workspace, +Shift+Alt workspace to monitor), the same `W`/`Shift+W`/`Z`/`A`
+menus, and the same screenshot and recording binds. Differences:
+
+- No column widths in the `Mod+W` menu, no dynamic cast
+  (`Mod+Insert`/`Mod+Shift+Insert`/`Mod+Delete`), no hotkey overlay (`Mod+O`)
+  and no windowed fullscreen (`Mod+Ctrl+F`). niri's `Mod+Alt+F` (maximize to
+  edges) is what `Mod+F` already does here.
+- `Mod+Ctrl+H/L` go to the previous/next workspace; niri's go next/previous.
+- Recording has no all-monitors scope: wl-screenrec captures one output.
+- DMS binds are declared here. niri gets them from DMS's niri home-manager
+  module, but DMS's Hyprland includes are Lua-only.
+- Hyprland-only: `Mod+P` pin, `Mod+R` split, `Mod+G` hyprsplit, the pyprland
+  scratchpads and `Mod+M` minimize, and `Mod+D` hyprflows.
 
 ## Plugins
 
-Hyprland plugins add extra compositor features:
-
-- **hyprexpo**: Workspace overview/expo (active)
-- **hyprsplit**: Advanced window splitting (disabled - may conflict with dwindle)
-- **hyprspace**: 3D workspace overview (disabled - needs GPU performance)
-- **hyprchroma**: Color management (disabled - experimental)
-
-To enable a plugin, uncomment it in `config/plugins/default.nix`.
-
-## Formatting
-
-This flake uses Alejandra for consistent Nix formatting:
-
-```bash
-# Format all files in the flake
-nix fmt
-
-# Or manually with alejandra
-nix run nixpkgs#alejandra -- .
-```
-
-## Binary Cache
-
-The module automatically configures the official Hyprland binary cache for faster builds:
-
-```nix
-nix.settings = {
-  substituters = [ "https://hyprland.cachix.org" ];
-  trusted-public-keys = [ "hyprland.cachix.org-1:..." ];
-};
-```
-
-## Dependencies
-
-### Flake Inputs
-
-- **nixpkgs**: NixOS package repository
-- **hyprland**: Hyprland compositor
-- **hyprland-contrib**: Additional tools (grimblast, etc.)
-- **hyprland-plugins**: Official plugin collection
-- **pyprland**: Python extensions for Hyprland
-- **noctalia**: Noctalia shell UI
-- **hypridle**, **hyprpaper**: Session management
-- **hyprspace**, **hyprsplit**, **hyprchroma**: Optional plugins
-
-### System Packages
-
-Automatically installed when the module is enabled:
-
-- Polkit authentication agents
-- Audio control (pavucontrol, pwvucontrol)
-- Clipboard management (wl-clipboard, cliphist)
-- Screenshot tools (grim, slurp, grimblast)
-- Wayland utilities (wlr-randr, wlroots)
-
-## Customization
-
-### Keybindings Reference
-
-This configuration uses a unified keymap system designed for muscle memory across both window managers (Hyprland/Niri) and editors (Neovim/Nixvim). See the **Unified Keymap Philosophy** section below for details.
-
-#### Modifier Key
-- **Primary Modifier**: `SUPER` (Windows/Command key)
-
-#### Navigation (Vim-Style HJKL)
-All navigation follows vim conventions:
-- **H** = Left
-- **J** = Down
-- **K** = Up
-- **L** = Right
-
-#### Modifier Layers
-The configuration uses consistent modifier stacking:
-- **Base (SUPER)**: Focus/navigate
-- **+ SHIFT**: Move/transfer
-- **+ CTRL**: Workspace level
-- **+ SHIFT + ALT**: Cross-monitor operations
-
-#### Core Keybinds
-
-**Window Management**
-| Keybind | Action |
-|---------|--------|
-| `SUPER + Q` | Close window |
-| `SUPER + F` | Fullscreen |
-| `SUPER + T` | Toggle floating |
-| `SUPER + P` | Pin window |
-| `SUPER + G` | Toggle group |
-| `SUPER + R` | Toggle split |
-
-**Navigation**
-| Keybind | Action |
-|---------|--------|
-| `SUPER + H/J/K/L` | Move focus left/down/up/right |
-| `SUPER + CTRL + H/L` | Cycle workspace -1/+1 |
-| `SUPER + SHIFT + H/L` | Focus monitor left/right |
-| `SUPER + 1-0` | Switch to workspace 1-10 |
-| `SUPER + SHIFT + 1-0` | Move window to workspace (silent) |
-
-**Monitor & Workspace Management**
-| Keybind | Action |
-|---------|--------|
-| `SUPER + SHIFT + ALT + H/L` | Move workspace to monitor left/right |
-| `SUPER + SHIFT + Left/Right` | Focus monitor left/right (arrows) |
-| `SUPER + Left/Right` | Cycle workspace (arrows) |
-
-**Interactive Menus (using wlr-which-key)**
-| Keybind | Menu | Actions |
-|---------|------|---------|
-| `SUPER + W` | Window Focus | `h/j/k/l` to move focus |
-| `SUPER + SHIFT + W` | Window Move | `h/j/k/l` to move window |
-| `SUPER + Z` | Window Resize | `h/j/k/l` to resize (±40px) |
-| `SUPER + A` | Application Launcher | See applications section |
-
-**Applications**
-| Keybind | Action |
-|---------|--------|
-| `SUPER + Return` | Terminal |
-| `SUPER + B` | Browser |
-| `SUPER + E` | File Manager |
-| `CTRL + SHIFT + Space` | Password Manager |
-
-**Application Menu (`SUPER + A`)**
-| Key | Application |
-|-----|-------------|
-| `p` | PhpStorm |
-| `d` | DataGrip |
-| `w` | WebStorm |
-| `s` | Slack |
-| `l` | Discord |
-| `f` | Firefox |
-| `c` | VSCode |
-| `e` | Nautilus |
-| `t` | Terminal (ghostty) |
-
-**Special Features**
-| Keybind | Action |
-|---------|--------|
-| `SUPER + M` | Toggle minimized (pypr) |
-| `SUPER + CTRL + M` | Toggle special workspace |
-| `SUPER + CTRL + T` | Toggle terminal scratchpad |
-| `SUPER + CTRL + V` | Toggle volume scratchpad |
-| `SUPER + CTRL + L` | Lock session |
-| `SUPER + SHIFT + ALT + S` | Screenshot |
-
-**Media & System**
-| Keybind | Action |
-|---------|--------|
-| `XF86AudioPlay` | Play/Pause |
-| `XF86AudioPrev/Next` | Previous/Next track |
-| `XF86AudioMute` | Toggle mute |
-| `XF86AudioRaiseVolume` | Volume +6% |
-| `XF86AudioLowerVolume` | Volume -6% |
-| `XF86MonBrightnessUp` | Brightness +5% |
-| `XF86MonBrightnessDown` | Brightness -5% |
-
-**Mouse Bindings**
-| Keybind | Action |
-|---------|--------|
-| `SUPER + Left Click` | Move window |
-| `SUPER + Right Click` | Resize window |
-| `SUPER + ALT + Left Click` | Resize window |
-
-### Unified Keymap Philosophy
-
-This configuration implements a **cross-system keymap standardization** to reduce cognitive load and leverage muscle memory:
-
-**Principles:**
-1. **Vim-style navigation everywhere**: H/J/K/L for directional movement in WMs and editors
-2. **Consistent modifiers**: Same modifier patterns across Hyprland and Niri
-3. **Namespace-based menus**: Interactive menus (via wlr-which-key) for grouped actions
-4. **Leader key harmony**: Editor leader key (`Space`) mirrors WM application menu (`SUPER+A`)
-5. **Mnemonic keys**: `Q` for quit/close, `E` for explorer, `F` for fullscreen, etc.
-
-**Cross-System Consistency:**
-- **Close/Quit**: `SUPER+Q` (WM), `<leader>q` (Neovim)
-- **Explorer/Files**: `SUPER+E` (file manager), `<leader>e` (file tree)
-- **Focus Movement**: `SUPER+H/J/K/L` (WM windows), `CTRL+H/J/K/L` (Neovim splits)
-- **Interactive Menus**: Both systems use menu/leader-based grouping for complex actions
-
-See the Niri, Nixvim, and Neovim READMEs for their specific implementations of this unified philosophy.
-
-### Changing Keybinds
-
-Edit `config/keybinds.nix` to customize keyboard shortcuts.
-
-### Modifying Window Rules
-
-Edit `config/window-rules.nix` for application-specific behaviors.
-
-### Adjusting Visual Settings
-
-Edit `config/settings.nix` for animations, blur, gaps, borders, etc.
-
-### Adding Scratchpads
-
-Edit `components/session/pyprland.nix` to add or modify scratchpad configurations.
-
-## Troubleshooting
-
-### Portal Issues
-
-If file pickers or screen sharing don't work:
-
-1. Check that `xdg.portal.enable = true` in your portal configuration
-2. Verify the backend matches your DE preferences
-3. Check `xdg-desktop-portal --version` and ensure services are running
-
-### Environment Variables
-
-Variables are set in multiple places:
-
-- System-wide in `default.nix`
-- UWSM integration in `config/environment.nix`
-- Session variables in Home Manager
-
-### Performance Issues
-
-If animations are slow:
-
-1. Reduce blur passes in `config/settings.nix`
-2. Disable `dim_inactive` or reduce `dim_strength`
-3. Consider disabling plugins like hyprspace
-
-## Migration from Previous Setup
-
-### Breaking Changes
-
-- **Option renamed**: `gnomeCompatibility` → `portals.backend = "gnome"`
-- **File moves**: Config files renamed for clarity (`binds.nix` → `keybinds.nix`, etc.)
-- **Structure**: Components reorganized into `ui/`, `tools/`, `session/` subdirectories
-
-### Update Your Configuration
-
-Replace:
-
-```nix
-modules.desktop.hyprland.gnomeCompatibility = true;
-```
-
-With:
-
-```nix
-modules.desktop.hyprland.portals.backend = "gnome";
-```
-
-## Contributing
-
-When adding new components or modifying existing ones:
-
-1. Keep files organized in appropriate subdirectories
-2. Document complex configurations with inline comments
-3. Format code with Alejandra before committing
-4. Update this README if adding new features
-
-## License
-
-This configuration is part of a personal NixOS setup. Feel free to use and adapt it for your own needs.
+Only hyprsplit, from `pkgs.hyprlandPlugins`. A plugin has to be built against
+the running Hyprland, so plugins come from the same nixpkgs as the compositor.
+
+## Check
+
+`just check` runs `nix flake check`. The check evaluates a minimal NixOS system
+(home-manager release-26.05, one user, `hyprsplit.enable = false`, `pkgs.hello`
+for every app) and writes out only the toplevel `.drv` path, so nothing in the
+system gets built.

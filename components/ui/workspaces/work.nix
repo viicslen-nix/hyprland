@@ -4,6 +4,7 @@ with pkgs;
     name = "hyprflow-work";
     runtimeInputs = [hyprland];
     text = ''
+      ${hyprland}/bin/hyprctl dispatch submap reset
       ${hyprland}/bin/hyprctl dispatch exec "[workspace 1 silent] zen-beta"
       ${hyprland}/bin/hyprctl dispatch exec "[workspace 11 silent] legcord"
       ${hyprland}/bin/hyprctl dispatch exec "[workspace 11 silent] kitty"

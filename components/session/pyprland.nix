@@ -5,6 +5,7 @@
   wlLib,
   ...
 }: let
+  pypr = lib.getExe pkgs.pyprland;
   webapp = name: url: (lib.concatStringsSep " " [
     "${lib.getExe pkgs.chromium}"
     "--user-data-dir=${config.xdg.configHome}/chromium/webapps/${name}"
@@ -13,7 +14,7 @@
     "--app=${url}"
   ]);
 in {
-  home.file.".config/hypr/pyprland.toml".text = ''
+  xdg.configFile."pypr/config.toml".text = ''
     [pyprland]
     plugins = [
       "monitors",
@@ -29,7 +30,7 @@ in {
 
     [scratchpads.volume]
     animation = "fromRight"
-    command = "pwvucontrol"
+    command = "${lib.getExe pkgs.pwvucontrol}"
     class = "com.saivert.pwvucontrol"
     size = "40% 90%"
     unfocus = "hide"
@@ -85,41 +86,43 @@ in {
 
   wayland.windowManager.hyprland = {
     settings = {
-      exec-once = lib.mkAfter [
-        "killall -q .pypr-wrapped; sleep .5 && pypr"
-      ];
+      exec-once = lib.mkAfter ["${pypr}"];
       bind = [
-        ("$mod, s, exec, "
+        "$mod, M, exec, ${pypr} toggle_special minimized"
+        "$mod CTRL, M, togglespecialworkspace, minimized"
+        "$mod CTRL, T, exec, ${pypr} toggle term"
+        "$mod CTRL, V, exec, ${pypr} toggle volume"
+        ("$mod, S, exec, "
           + wlLib.mkMenu [
             {
               key = "b";
               desc = "Bluetooth";
-              cmd = "pypr toggle bluetooth";
+              cmd = "${pypr} toggle bluetooth";
             }
             {
               key = "s";
               desc = "Services";
-              cmd = "pypr toggle services";
+              cmd = "${pypr} toggle services";
             }
             {
               key = "n";
               desc = "Notes";
-              cmd = "pypr toggle notes";
+              cmd = "${pypr} toggle notes";
             }
             {
               key = "m";
               desc = "Messages";
-              cmd = "pypr toggle messages";
+              cmd = "${pypr} toggle messages";
             }
             {
               key = "w";
               desc = "WhatsApp";
-              cmd = "pypr toggle whatsapp";
+              cmd = "${pypr} toggle whatsapp";
             }
             {
               key = "g";
               desc = "Gemini";
-              cmd = "pypr toggle gemini";
+              cmd = "${pypr} toggle gemini";
             }
           ])
       ];

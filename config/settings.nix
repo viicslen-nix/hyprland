@@ -1,30 +1,13 @@
-{
-  lib,
-  pkgs,
-  config,
-  osConfig,
-  ...
-}:
-with lib; let
-  # Check if Nvidia optimizations are enabled
-  nvidiaEnabled = osConfig.modules.desktop.hyprland.nvidia or false;
-in {
+{lib, ...}:
+with lib; {
   wayland.windowManager.hyprland.settings = {
     monitor = [
       ",preferred,auto,1"
     ];
 
     exec-once = [
-      "dbus-update-activation-environment --systemd --all"
-      "systemctl --user import-environment QT_QPA_PLATFORMTHEME WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
-      "systemctl --user start hyprland-session.target"
+      "/run/wrappers/bin/gnome-keyring-daemon --start --components=secrets"
       "systemctl --user start desktop-shell.target"
-
-      # "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
-      "gnome-keyring-daemon --start --components=secrets"
-
-      "wl-paste --type text --watch cliphist store"
-      "wl-paste --type image --watch cliphist store"
     ];
 
     general = {
@@ -87,7 +70,6 @@ in {
         range = 20;
         offset = "0 2";
         render_power = 3;
-        ignore_window = true;
         sharp = false;
         scale = 1.0;
       };
@@ -103,7 +85,9 @@ in {
       ];
     };
 
-    # Gestures for touchpad users
+    # The gestures:* tuning below does nothing without a gesture line.
+    gesture = ["3, horizontal, workspace"];
+
     gestures = {
       workspace_swipe_distance = 300;
       workspace_swipe_cancel_ratio = 0.5;
@@ -160,7 +144,6 @@ in {
     };
 
     dwindle = {
-      pseudotile = true;
       preserve_split = true;
     };
 
@@ -194,7 +177,6 @@ in {
       swallow_exception_regex = "^(wev)$";
 
       # Behavior improvements
-      vfr = true;
       focus_on_activate = false;
       mouse_move_focuses_monitor = true;
       close_special_on_empty = true;
@@ -208,62 +190,32 @@ in {
       use_nearest_neighbor = true;
     };
 
-    # Nvidia-specific optimizations (conditional)
-    opengl = mkIf nvidiaEnabled {
-      nvidia_anti_flicker = true;
+    render = {
+      direct_scanout = mkDefault 2;
+      expand_undersized_textures = true;
+      send_content_type = true;
     };
 
-    render = mkMerge [
-      {
-        direct_scanout = mkDefault 2;
-        expand_undersized_textures = true;
-        send_content_type = true;
-      }
-      # Additional Nvidia-specific render settings
-      (mkIf nvidiaEnabled {
-        ctm_animation = 2; # Auto (disables on Nvidia)
-        cm_fs_passthrough = 2; # HDR passthrough
-      })
-    ];
+    cursor = {
+      sync_gsettings_theme = true;
+      inactive_timeout = 2;
+      hide_on_key_press = true;
+      hide_on_touch = true;
 
-    # Advanced cursor features
-    cursor = mkMerge [
-      {
-        # Cursor visibility and behavior
-        sync_gsettings_theme = true;
-        inactive_timeout = 0; # Never hide
-        hide_on_key_press = false;
-        hide_on_touch = true;
+      no_warps = false;
+      warp_on_change_workspace = 0;
+      persistent_warps = false;
+      default_monitor = "";
 
-        # Cursor warping (advanced feature)
-        no_warps = false; # Allow warping
-        warp_on_change_workspace = 0; # 0=disabled, 1=enabled, 2=force
-        persistent_warps = false;
-        default_monitor = "";
+      zoom_factor = 1.0;
+      zoom_rigid = false;
+      zoom_disable_aa = false;
 
-        # Cursor zoom features (advanced feature)
-        zoom_factor = 1.0; # 1.0 = no zoom
-        zoom_rigid = false;
-        zoom_disable_aa = false;
+      no_break_fs_vrr = 2;
+      min_refresh_rate = 24;
 
-        # VRR and performance
-        no_break_fs_vrr = 2; # Auto for gaming
-        min_refresh_rate = 24;
-
-        # Hyprcursor support
-        enable_hyprcursor = true;
-      }
-      # Nvidia-specific cursor settings
-      (mkIf nvidiaEnabled {
-        no_hardware_cursors = mkDefault 2;
-        use_cpu_buffer = mkDefault 2;
-      })
-      # Non-Nvidia cursor settings
-      (mkIf (!nvidiaEnabled) {
-        no_hardware_cursors = mkDefault 0;
-        use_cpu_buffer = mkDefault 0;
-      })
-    ];
+      enable_hyprcursor = true;
+    };
 
     ecosystem = {
       no_update_news = true;

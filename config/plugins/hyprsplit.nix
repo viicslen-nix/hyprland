@@ -1,9 +1,4 @@
-{
-  pkgs,
-  osConfig,
-  ...
-}: let
-  # binds $mod + [shift +] {1..10} to [move to] workspace {1..10}
+{pkgs, ...}: let
   workspaces = builtins.concatLists (builtins.genList (
       x: let
         ws = let
@@ -18,10 +13,8 @@
     10);
 in {
   wayland.windowManager.hyprland = {
-    plugins = [
-      osConfig.modules.desktop.hyprland.hyprsplit.package
-      # pkgs.hyprlandPlugins.hyprsplit
-    ];
+    # Keep this from nixpkgs: a plugin built against any other hyprland fails the plugin API hash check.
+    plugins = [pkgs.hyprlandPlugins.hyprsplit];
 
     settings = {
       plugin.hyprsplit = {

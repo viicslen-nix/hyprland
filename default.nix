@@ -16,23 +16,71 @@ with lib; let
     builtins.hasAttr "stylix" config
     && builtins.hasAttr "cursor" config.stylix
     && builtins.hasAttr "size" config.stylix.cursor;
+
+  portalBackends = {
+    gtk = {
+      portal = "gtk";
+      package = pkgs.xdg-desktop-portal-gtk;
+    };
+    gnome = {
+      portal = "gnome";
+      package = pkgs.xdg-desktop-portal-gnome;
+    };
+    qt = {
+      # The KDE backend ships kde.portal, so "qt" is not a valid portal name.
+      portal = "kde";
+      package = pkgs.kdePackages.xdg-desktop-portal-kde;
+    };
+  };
 in {
   options.modules.${namespace}.${name} = {
-    enable = mkEnableOption (mdDoc "hyprland");
+    enable = mkEnableOption "hyprland";
 
-    package = mkOption {
-      type = types.package;
-      default = pkgs.hyprland;
-      description = "The hyprland package to use";
+    terminal = mkOption {
+      type = types.nullOr types.package;
+      default = null;
+      description = ''
+        The default terminal emulator to use for hyprland keybinds.
+        If null, will use the defaults module terminal if available.
+      '';
     };
 
-    portalPackage = mkOption {
-      type = types.package;
-      default = pkgs.xdg-desktop-portal-hyprland;
-      description = "The portal package to use";
+    browser = mkOption {
+      type = types.nullOr types.package;
+      default = null;
+      description = ''
+        The default browser to use for hyprland keybinds.
+        If null, will use the defaults module browser if available.
+      '';
     };
 
-    # Portal configuration options
+    editor = mkOption {
+      type = types.nullOr types.package;
+      default = null;
+      description = ''
+        The default editor to use for hyprland keybinds.
+        If null, will use the defaults module editor if available.
+      '';
+    };
+
+    fileManager = mkOption {
+      type = types.nullOr types.package;
+      default = null;
+      description = ''
+        The default file manager to use for hyprland keybinds.
+        If null, will use the defaults module fileManager if available.
+      '';
+    };
+
+    passwordManager = mkOption {
+      type = types.nullOr types.package;
+      default = null;
+      description = ''
+        The default password manager to use for hyprland keybinds.
+        If null, will use the defaults module passwordManager if available.
+      '';
+    };
+
     portals = {
       enable = mkOption {
         type = types.bool;
@@ -77,43 +125,12 @@ in {
       description = "Global environment variables for Wayland/Hyprland";
     };
 
-    nvidia = mkOption {
+    hyprsplit.enable = mkOption {
       type = types.bool;
-      default = false;
-      description = ''
-        Enable Nvidia-specific optimizations for Hyprland.
-        This includes:
-        - nvidia_anti_flicker in OpenGL settings
-        - Optimized render settings for Nvidia GPUs
-        - Hardware cursor buffer optimizations
-      '';
-    };
-
-    hyprsplit = {
-      enable = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Enable hyprsplit plugin and keybinds";
-      };
-
-      package = mkOption {
-        type = types.package;
-        default = inputs.hyprsplit.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (old: {
-          postPatch = (old.postPatch or "") + ''
-            substituteInPlace src/main.cpp \
-              --replace-fail '<hyprland/src/helpers/Monitor.hpp>' '<hyprland/src/output/Monitor.hpp>'
-          '';
-        });
-        description = "The hyprsplit package to use";
-      };
+      default = true;
+      description = "Enable hyprsplit plugin and keybinds";
     };
   };
-
-  imports = [
-    inputs.hyprland.nixosModules.default
-    ./system/security.nix
-    ./system/services.nix
-  ];
 
   config = mkIf cfg.enable (mkMerge [
     {
@@ -125,10 +142,6 @@ in {
         };
 
         globalVariables = {
-          # Allow unfree packages
-          NIXPKGS_ALLOW_UNFREE = "1";
-
-          # Wayland environment
           XDG_SESSION_TYPE = "wayland";
           CLUTTER_BACKEND = "wayland";
           GDK_BACKEND = "wayland,x11";
@@ -143,133 +156,44 @@ in {
     }
 
     {
-      # Hyprland program configuration
-      programs = {
-        hyprland = {
-          enable = true;
-          withUWSM = true;
-          xwayland.enable = true;
-          package = cfg.package;
-          portalPackage = cfg.portalPackage;
-        };
-
-        hyprlock.enable = true;
+      programs.hyprland = {
+        enable = true;
+        withUWSM = true;
+        xwayland.enable = true;
       };
 
-      # System environment configuration
-      environment = {
-        variables.XDG_RUNTIME_DIR = "/run/user/$UID";
+      environment.systemPackages = with pkgs; [
+        adwaita-icon-theme
+        adwaita-fonts
+        adwaita-qt6
+        adwaita-qt
+      ];
 
-        systemPackages = with pkgs; [
-          # Polkit authentication agents
-          hyprpolkitagent
-          polkit_gnome
-
-          # Audio control
-          qpwgraph
-          pavucontrol
-          pwvucontrol
-          wireplumber
-
-          # Wallpaper management
-          waypaper
-          hyprpaper
-
-          # Screenshot tools
-          grim
-          slurp
-          flameshot
-          inputs.hyprland-contrib.packages.${pkgs.stdenv.hostPlatform.system}.grimblast
-          satty
-
-          # Clipboard management
-          wl-clipboard
-          cliphist
-
-          # Wayland utilities
-          inputs.pyprland.packages.${pkgs.stdenv.hostPlatform.system}.pyprland
-          wl-screenrec
-          wlr-randr
-          wlroots
-        ];
-      };
-
-      # Hyprland cachix binary cache
-      nix.settings = {
-        substituters = [
-          "https://hyprland.cachix.org"
-        ];
-        trusted-public-keys = [
-          "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
-        ];
-      };
+      services.gnome.gnome-keyring.enable = true;
     }
 
-    # XDG Portal Configuration
-    (mkIf cfg.portals.enable (let
-      # Determine which additional portal backends to include
-      extraPortalPackages = with pkgs;
-        [
-          xdg-desktop-portal-gtk # Always include GTK for file chooser
-        ]
-        ++ optionals (cfg.portals.backend == "gnome") [
-          xdg-desktop-portal-gnome # Add GNOME portal if selected
-        ]
-        ++ optionals (cfg.portals.backend == "qt") [
-          kdePackages.xdg-desktop-portal-kde # Add KDE portal if selected
-        ]
-        ++ (map (backend:
-          if backend == "gnome"
-          then xdg-desktop-portal-gnome
-          else if backend == "qt"
-          then kdePackages.xdg-desktop-portal-kde
-          else xdg-desktop-portal-gtk)
-        cfg.portals.extraBackends);
+    (mkIf (cfg.portals.backend == "gnome") {
+      programs.seahorse.enable = true;
 
-      # Build the portal priority list for Hyprland
-      hyprlandPortals = ["hyprland" cfg.portals.backend];
-
-      # Build the portal priority list for common/fallback
-      commonPortals = [cfg.portals.backend];
-    in {
-      xdg.portal = {
-        enable = true;
-        xdgOpenUsePortal = cfg.portals.xdgOpenUsePortal;
-
-        # Portal backend configuration
-        # Defines the priority order for which portal implementation to use
-        config = {
-          # Hyprland-specific portal configuration
-          hyprland.default = hyprlandPortals;
-
-          # Fallback for other environments
-          common.default = commonPortals;
-        };
-
-        # Install portal packages
-        extraPortals =
-          [cfg.portalPackage] # xdg-desktop-portal-hyprland
-          ++ extraPortalPackages;
-
-        # Config packages (required for portal.conf generation)
-        configPackages =
-          [cfg.portalPackage]
-          ++ extraPortalPackages;
+      services.gnome = {
+        gnome-remote-desktop.enable = true;
+        gnome-settings-daemon.enable = true;
       };
+    })
 
-      # Enable wlr portal backend (required for some applications)
-      xdg.portal.wlr.enable = true;
-    }))
+    (mkIf cfg.portals.enable {
+      xdg.portal = {
+        inherit (cfg.portals) xdgOpenUsePortal;
+        config.hyprland.default = ["hyprland" portalBackends.${cfg.portals.backend}.portal];
+        extraPortals = unique (map (backend: portalBackends.${backend}.package) ([cfg.portals.backend] ++ cfg.portals.extraBackends));
+      };
+    })
 
-    # Home Manager integration
-    (mkIf homeManagerLoaded {
+    (optionalAttrs homeManagerLoaded {
       home-manager.sharedModules = [
         {
-          _module.args.hyprlandInputs = inputs;
           _module.args.wlLib = inputs.viicslen-lib.lib.wayland {inherit pkgs lib;};
           imports = [
-            inputs.hyprland.homeManagerModules.default
-            inputs.noctalia.homeModules.default
             ./config
             ./components
           ];
@@ -279,12 +203,10 @@ in {
             package = null;
             portalPackage = null;
             systemd.enable = false;
+            # Keep explicit: home-manager defaults to lua from stateVersion 26.05, and this config is hyprlang.
+            configType = "hyprlang";
           };
 
-          # Use hyprpolkitagent for GTK backend, otherwise use GNOME's
-          services.hyprpolkitagent.enable = cfg.portals.backend != "gnome";
-
-          # GNOME Settings integration when using GNOME backend
           xdg.desktopEntries."org.gnome.Settings" = mkIf (cfg.portals.backend == "gnome") {
             name = "Settings";
             comment = "Gnome Control Center";
@@ -294,7 +216,6 @@ in {
             terminal = false;
           };
 
-          # dconf settings for window decorations
           dconf.settings."org/gnome/desktop/wm/preferences".button-layout = ":";
         }
       ];

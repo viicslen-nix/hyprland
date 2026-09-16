@@ -10,8 +10,8 @@ in {
   home.sessionVariables = filterAttrs (n: v: v != null) hyprConfig.globalVariables;
 
   xdg.configFile = mkIf osConfig.programs.hyprland.withUWSM {
-    "uwsm/env".text = concatMapAttrsStringSep "\n" (name: value: "export ${name}=${value}") (filterAttrs (n: v: v != null) hyprConfig.globalVariables);
-    "uwsm/env-hyprland".text = concatMapAttrsStringSep "\n" (name: value: "export ${name}=${value}") (filterAttrs (n: v: v != null) hyprConfig.hyprVariables);
+    "uwsm/env".text = concatMapAttrsStringSep "\n" (name: value: "export ${name}=${lib.escapeShellArg value}") (filterAttrs (n: v: v != null) hyprConfig.globalVariables);
+    "uwsm/env-hyprland".text = concatMapAttrsStringSep "\n" (name: value: "export ${name}=${lib.escapeShellArg value}") (filterAttrs (n: v: v != null) hyprConfig.hyprVariables);
   };
 
   wayland.windowManager.hyprland.settings.env = concatLists [

@@ -7,14 +7,14 @@
 in {
   wayland.windowManager.hyprland = {
     settings.bind = [
-      "$mod, d, submap, hyprflows"
+      "$mod, D, submap, hyprflows"
     ];
 
     extraConfig = lib.mkAfter ''
       # apps
       submap = hyprflows
 
-      binde = , 1, exec, ${lib.getExe work}
+      bind = , 1, exec, ${lib.getExe work}
 
       bind = , escape, submap, reset
       bind = , catchall, submap, reset
