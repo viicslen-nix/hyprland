@@ -150,7 +150,7 @@ in {
         globalVariables = {
           XDG_SESSION_TYPE = "wayland";
           CLUTTER_BACKEND = "wayland";
-          GDK_BACKEND = "wayland,x11";
+          # Never set GDK_BACKEND here: home.sessionVariables leaks it into every session and degrades xdg-desktop-portal-gnome to settings-only (no file chooser).
           SDL_VIDEODRIVER = "wayland";
           QT_QPA_PLATFORM = "wayland;xcb";
           QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";

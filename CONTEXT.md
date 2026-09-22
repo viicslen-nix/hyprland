@@ -248,3 +248,19 @@ a real session:
 - A pad's first start opening `special:<pad>` with the window focused.
 - The scrolling layout's menu layout messages, the `scroll_move` gesture and
   vertical workspace swipes.
+
+## `globalVariables` is not scoped to a Hyprland session
+
+`config/environment.nix` feeds `globalVariables` to `home.sessionVariables`,
+so every variable in that set is exported by `~/.profile` in *all* sessions —
+niri included, on hosts that import both. `GDK_BACKEND = "wayland,x11"` lived
+there and broke file choosers under niri: xdg-desktop-portal-gnome refuses to
+expose dialogs when GDK_BACKEND is forced ("GDK backend forced via env var" →
+"Non-compatible display server, exposing settings only"), so it registered
+only `impl.portal.Settings`. niri's shipped `niri-portals.conf` sets
+`default=gnome;gtk`, which routes FileChooser to that crippled backend, and
+xdg-desktop-portal does not fall back to gtk — every open/save died on
+`Backend call failed: No such interface "org.freedesktop.impl.portal.FileChooser"`.
+Dropped the variable outright: GTK picks Wayland from `WAYLAND_DISPLAY` on its
+own, so it bought nothing under Hyprland either. Anything genuinely
+Hyprland-only belongs in `hyprVariables`.
