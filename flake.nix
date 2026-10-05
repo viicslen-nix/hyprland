@@ -16,23 +16,29 @@
       url = "github:viicslen-nix/lib";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs @ {
     self,
     nixpkgs,
+    treefmt-nix,
     ...
   }: let
     forAllSystems = nixpkgs.lib.genAttrs [
       "x86_64-linux"
       "aarch64-linux"
     ];
-  in {
-    nixosModules.default = import ./default.nix inputs;
 
-    nixosModules.hyprland = self.nixosModules.default;
+    treefmtEval =
+      forAllSystems (system:
+        treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix);
 
-    checks.x86_64-linux.default = let
+    moduleEvalCheck = let
       user = "test";
       stateVersion = "26.05";
       # Keep this the rev hosts use: home-manager's Lua renderer differs between commits.
@@ -78,7 +84,25 @@
       # Keep unsafeDiscardOutputDependency: a bare drvPath's deep context makes the check build the whole system.
       nixpkgs.legacyPackages.x86_64-linux.writeText "hyprland-module-eval"
       (builtins.unsafeDiscardOutputDependency testConfig.config.system.build.toplevel.drvPath);
+  in {
+    nixosModules.default = import ./default.nix inputs;
 
-    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
+    nixosModules.hyprland = self.nixosModules.default;
+
+    checks = forAllSystems (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+      {
+        treefmt = treefmtEval.${system}.config.build.check self;
+        # treefmt only runs `statix fix`, which skips lints it cannot fix (W20).
+        statix = pkgs.runCommandLocal "statix-check" {} ''
+          ${pkgs.lib.getExe pkgs.statix} check ${./.} && touch $out
+        '';
+      }
+      // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+        default = moduleEvalCheck;
+      });
+
+    formatter = forAllSystems (system: treefmtEval.${system}.config.build.wrapper);
   };
 }

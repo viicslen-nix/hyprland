@@ -1,3 +1,3 @@
-# Check that the hyprland module evaluates correctly against a minimal test configuration.
+# Evaluate the module against a minimal test system, and check formatting and statix lints.
 check:
 	nix flake check --print-build-logs

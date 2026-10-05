@@ -15,9 +15,9 @@ hyprland.cachix.org holds builds made against Hyprland's own nixpkgs pin.
 Following ours changes every store path, the cache misses, and Hyprland builds
 from source. That already happened once, when this flake took Hyprland as an
 input and the root forced it onto its nixpkgs. The root `hyprland` input
-follows only this flake's own `nixpkgs` and `viicslen-lib`, which leaves the
-nested one alone. The cost is a second nixpkgs in the eval and in Hyprland's
-closure.
+follows only this flake's own `nixpkgs`, `viicslen-lib` and `treefmt-nix`,
+which leaves the nested one alone. The cost is a second nixpkgs in the eval
+and in Hyprland's closure.
 
 The cache is a `desktop`-scope entry in the root `caches.nix`, with no
 `ownNixpkgs`, because this is a real input, not an omniflake index entry. The
