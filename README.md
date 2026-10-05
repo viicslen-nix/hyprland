@@ -1,112 +1,166 @@
+<div align="center">
+
 # Hyprland
 
-NixOS module for a Hyprland session started through UWSM, with
-DankMaterialShell (DMS) as the shell. The config is written in Lua
-(home-manager `configType = "lua"`) for Hyprland's main branch. Why it is built
-this way is in [CONTEXT.md](./CONTEXT.md).
+**A Lua-configured Hyprland session for NixOS, started by UWSM, shelled by DankMaterialShell.**
+
+[![Hyprland main](https://img.shields.io/badge/Hyprland-main_@_7ebf13a-58E1FF?style=flat-square)](https://github.com/hyprwm/Hyprland/commit/7ebf13abb3c391604c60c9f627c7a403bcec8d17)
+[![Config](https://img.shields.io/badge/config-Lua-2C2D72?style=flat-square&logo=lua&logoColor=white)](https://wiki.hypr.land)
+[![Cachix](https://img.shields.io/badge/cache-hyprland.cachix.org-5277C3?style=flat-square&logo=nixos&logoColor=white)](https://hyprland.cachix.org)
+
+</div>
+
+A NixOS module that enables `programs.hyprland` (UWSM, XWayland) from
+Hyprland's own flake and writes the whole user config through home-manager in
+Lua (`configType = "lua"`): settings, binds, rules, scratchpads, per-monitor
+workspaces and the DMS integration.
+
+> [!NOTE]
+> Part of [viicslen-nix/nixos](https://github.com/viicslen-nix/nixos), where it
+> lives as the `flakes/hyprland` submodule. Why it is built this way — the
+> Hyprland pin, `uwsm finalize`, hyprsplit as Lua, the end of pyprland — is in
+> [CONTEXT.md](./CONTEXT.md). Read it before changing anything.
+
+## Outputs
+
+| Output | Description |
+| --- | --- |
+| `nixosModules.default` | The module; options under `modules.desktop.hyprland` |
+| `nixosModules.hyprland` | Alias of `default` |
+| `checks.x86_64-linux.default` | Evaluates a minimal NixOS system with the module and writes out its toplevel `.drv` path |
+| `checks.<system>.treefmt` | treefmt (deadnix, statix, alejandra) reports no changes |
+| `checks.<system>.statix` | `statix check` passes, including lints `statix fix` cannot fix |
+| `formatter.<system>` | treefmt wrapper behind `nix fmt` |
+
+Systems: `x86_64-linux`, `aarch64-linux`.
+
+## Inputs
+
+| Input | Role |
+| --- | --- |
+| `hyprland-git` | Hyprland and xdg-desktop-portal-hyprland, pinned to `7ebf13a` on main. Does **not** follow nixpkgs, so builds come from hyprland.cachix.org. Held until Quickshell and DMS cope with hyprctl dropping workspace ids |
+| `hyprsplit` | Upstream's Lua library (`flake = false`) |
+| `nixpkgs` | Everything else |
+| `viicslen-lib` | The `wayland` helpers (`mkMenu`, `mkRecordCmd`) exposed to modules as `wlLib` |
+| `treefmt-nix` | `nix fmt` and the formatting check |
+
+> [!IMPORTANT]
+> The cache is declared in the root repo's `caches.nix`. A machine that has not
+> been rebuilt with it yet must pass it on the first rebuild, or Hyprland
+> builds from source:
+>
+> ```text
+> --option extra-substituters https://hyprland.cachix.org
+> --option extra-trusted-public-keys hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc=
+> ```
+
+## Usage
 
 ```nix
+# flake.nix
+inputs.hyprland = {
+  url = "github:viicslen-nix/hyprland";
+  inputs.nixpkgs.follows = "nixpkgs";
+  # Never make hyprland-git follow nixpkgs: it voids the binary cache.
+};
+```
+
+```nix
+# a NixOS module
 imports = [inputs.hyprland.nixosModules.default];
 modules.desktop.hyprland.enable = true;
 ```
 
-Settings, binds and rules are applied through `home-manager.sharedModules`, so
-they need home-manager loaded.
-
-## Inputs and binary cache
-
-- `hyprland-git`: Hyprland and xdg-desktop-portal-hyprland, pinned to commit
-  `7ebf13a` on main. It does not follow nixpkgs, so its builds come from
-  hyprland.cachix.org. The pin stays until Quickshell and DMS handle the
-  removal of workspace ids from hyprctl (see CONTEXT.md).
-- `hyprsplit`: upstream's Lua library (`flake = false`).
-- `nixpkgs`, `viicslen-lib`: everything else.
-
-The cache is declared in the root `caches.nix`. A machine that has not been
-rebuilt with it yet needs it passed on the first rebuild:
-
-```text
---option extra-substituters https://hyprland.cachix.org
---option extra-trusted-public-keys hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc=
-```
+The root repo takes it as `path:./flakes/hyprland` and imports it in the
+`desktop` preset. All user config goes through `home-manager.sharedModules`, so
+home-manager must be loaded; without it only the NixOS side is applied.
 
 ## Options
 
 All under `modules.desktop.hyprland`:
 
+| Option | Default | Description |
+| --- | --- | --- |
+| `enable` | `false` | `programs.hyprland` (UWSM, XWayland), gnome-keyring, Adwaita icon/font/Qt themes |
+| `terminal`, `browser`, `editor`, `fileManager`, `passwordManager` | `null` | Packages the binds launch. `null` falls back to home-manager's `modules.functionality.defaults.<name>`; with neither, the bind and its `Mod+A` entry are left out. The password manager runs with `--quick-access` |
+| `portals.enable` | `true` | Configure `xdg.portal` |
+| `portals.backend` | `"gtk"` | `"gtk"` \| `"gnome"` \| `"qt"`, paired with the hyprland portal. `"gnome"` also enables seahorse, gnome-settings-daemon, gnome-remote-desktop and a Settings launcher |
+| `portals.extraBackends` | `[]` | Further backends to install |
+| `portals.xdgOpenUsePortal` | `true` | Route `xdg-open` through the portal |
+| `hyprVariables` | see below | Hyprland-only environment |
+| `globalVariables` | see below | Wayland environment for every session |
+| `layout` | `"dwindle"` | `"dwindle"` \| `"master"` \| `"scrolling"` |
+| `hyprsplit.enable` | `true` | Per-monitor workspaces through the hyprsplit Lua library |
+
+<details>
+<summary><b>Environment variables</b></summary>
+
+Defaults:
+
+- `hyprVariables`: `XDG_CURRENT_DESKTOP`, `XDG_SESSION_DESKTOP`, and
+  `XCURSOR_SIZE` when Stylix sets a cursor size.
+- `globalVariables`: `XDG_SESSION_TYPE`, `CLUTTER_BACKEND`, `SDL_VIDEODRIVER`,
+  `QT_QPA_PLATFORM`, `QT_WAYLAND_DISABLE_WINDOWDECORATION`,
+  `MOZ_ENABLE_WAYLAND`, `NIXOS_OZONE_WL`, `ELECTRON_OZONE_PLATFORM_HINT`.
+
+Both sets become `hl.env` calls and are written to UWSM's env files, which
+UWSM sources before the compositor starts: `~/.config/uwsm/env`
+(`globalVariables`) and `~/.config/uwsm/env-hyprland` (`hyprVariables`).
+`globalVariables` also lands in `home.sessionVariables`, so it reaches **every**
+session, niri included — anything Hyprland-only belongs in `hyprVariables`.
+Null values are skipped, so `lib.mkForce null` drops a default.
+
+</details>
+
+<details>
+<summary><b>Scrolling layout</b></summary>
+
+`layout = "scrolling"` uses Hyprland's built-in scrolling layout tuned like
+niri: new columns at 95%, width presets 30/48/65/95%, and a 3-finger gesture
+that scrolls columns horizontally and changes workspace vertically (with a
+vertical slide). The column settings apply whatever the layout, so a single
+workspace can scroll with:
+
 ```nix
-{
-  enable = true;        # programs.hyprland (UWSM, XWayland), gnome-keyring, Adwaita themes
-
-  # Packages the binds launch. null falls back to home-manager's
-  # modules.functionality.defaults.<name>; with neither, the bind and its
-  # Mod+A entry are left out. The password manager runs with --quick-access.
-  terminal = null;
-  browser = null;
-  editor = null;
-  fileManager = null;
-  passwordManager = null;
-
-  portals = {
-    enable = true;
-    backend = "gtk";     # "gtk" | "gnome" | "qt"; paired with the hyprland portal
-    extraBackends = [];  # further backends to install
-    xdgOpenUsePortal = true;
-  };
-
-  hyprVariables = {};    # defaults: XDG_CURRENT_DESKTOP, XDG_SESSION_DESKTOP, XCURSOR_SIZE (Stylix)
-  globalVariables = {};  # defaults: Wayland hints (GDK_BACKEND, QT_QPA_PLATFORM, NIXOS_OZONE_WL, ...)
-
-  layout = "dwindle";       # "dwindle" | "master" | "scrolling" (niri-style columns)
-  hyprsplit.enable = true;  # per-monitor workspaces (hyprsplit Lua library)
-}
+wayland.windowManager.hyprland.settings.workspace_rule = [
+  { workspace = "2"; layout = "scrolling"; }
+];
 ```
 
-`layout = "scrolling"` uses Hyprland's built-in scrolling layout with niri's
-column widths (new columns 95%, presets 30/48/65/95%), and switches the
-3-finger gesture to niri's: horizontal scrolls the columns, vertical changes
-workspace (with a vertical slide). The column settings are applied whatever the
-layout, so a single workspace can scroll with
-`settings.workspace_rule = [{ workspace = "2"; layout = "scrolling"; }]`.
+</details>
 
-`portals.backend = "gnome"` also enables seahorse, gnome-settings-daemon,
-gnome-remote-desktop and a Settings launcher.
-
-Both variable sets become `hl.env` calls and are written to UWSM's env files,
-which UWSM sources before the compositor starts: `~/.config/uwsm/env`
-(`globalVariables`) and `~/.config/uwsm/env-hyprland` (`hyprVariables`).
-`globalVariables` also lands in `home.sessionVariables`. Null values are
-skipped, so `lib.mkForce null` drops a default.
+<details>
+<summary><b>Monitors</b></summary>
 
 Hosts add outputs to `wayland.windowManager.hyprland.settings.monitor` as
 tables (`output`, `mode`, `position`, `scale`, `transform`, `vrr`). The flake
 adds a catch-all
 `{ output = ""; mode = "preferred"; position = "auto"; scale = 1; }`.
 
+</details>
+
 ## Session
 
-A `hyprland.start` hook runs `uwsm finalize`, `gnome-keyring-daemon` (secrets)
-and `desktop-shell.target`. The target is declared by the root repo's desktop
-shell module; the selected shell binds itself to it.
-
-DMS supplies the polkit agent, idle and lock, wallpaper, clipboard history, OSD
-and notifications. This flake adds its binds, window rule and layer rules, and
-loads the Lua files DMS writes at runtime (`dms/colors`, `outputs`, `layout`,
-`cursor`, `windowrules`, never `dms/binds`). All of that only while
-`modules.desktop.shell` is `"dms"` (or unset).
-
-## Files
+| Piece | Where it comes from |
+| --- | --- |
+| Startup | A `hyprland.start` hook runs `uwsm finalize`, `gnome-keyring-daemon` (secrets) and `systemctl --user start desktop-shell.target` |
+| Shell | Whatever binds itself to `desktop-shell.target`, declared by the root repo's desktop shell module |
+| Polkit, idle/lock, wallpaper, clipboard, OSD, notifications | DMS — this flake runs none of its own, and forces `services.hyprpaper` off |
+| DMS integration | Binds, a window rule, layer rules, and guarded `require`s of the Lua files DMS writes at runtime (`dms/colors`, `outputs`, `layout`, `cursor`, `windowrules`; never `dms/binds`). Only while `modules.desktop.shell` is `"dms"` or unset |
 
 home-manager writes these to `~/.config/hypr/`:
 
-- `hyprland.lua`: settings, binds, rules, the `hyprflows` submap and the DMS
+- `hyprland.lua` — settings, binds, rules, the `hyprflows` submap and the DMS
   includes
-- `scratchpads.lua`: the `scratchpad()` and `minimize()` functions
-- `hyprsplit/init.lua`, `hyprsplit-binds.lua`: when `hyprsplit.enable`
+- `scratchpads.lua` — the `scratchpad()` and `minimize()` functions
+- `hyprsplit/init.lua`, `hyprsplit-binds.lua` — when `hyprsplit.enable`
+
+## Layout
 
 ```text
 .
-├── flake.nix               # inputs, nixosModules.default, eval-only check
+├── flake.nix               # inputs, nixosModules, checks, formatter
+├── treefmt.nix             # deadnix, statix, alejandra
 ├── Justfile                # just check
 ├── default.nix             # options, programs.hyprland, portals, home-manager wiring, hlLib
 ├── config/
@@ -129,25 +183,26 @@ home-manager writes these to `~/.config/hypr/`:
         └── workspaces/default.nix  # hyprflows submap
 ```
 
-Binds are written with `hlLib.bind "SUPER + Q" "<Lua dispatcher>" {}`. The last
+Binds are written as `hlLib.bind "SUPER + Q" "<Lua dispatcher>" {}`; the last
 argument takes `mouse`, `locked` and `repeating`. `hlLib.exec cmd` builds an
-`hl.dsp.exec_cmd` dispatcher.
+`hl.dsp.exec_cmd` dispatcher. Menus use `wlLib.mkMenu` (wlr-which-key).
 
 ## Keybinds
 
-`Mod` is Super. Hyprland fires every bind on a matching combo, so each combo
-must exist in exactly one of the files below.
+`Mod` is Super. Hyprland fires **every** bind on a matching combo, so each
+combo must exist in exactly one of the files below.
 
-**`config/binds/default.nix`**
+<details>
+<summary><b>Core</b> — <code>config/binds/default.nix</code></summary>
 
 | Keys | Action |
-|------|--------|
+| --- | --- |
 | `Mod+Q` | Close window |
 | `Mod+F` | Maximize |
 | `Mod+Shift+F` | Fullscreen |
 | `Mod+T` | Toggle floating |
 | `Mod+P` | Pin |
-| `Mod+R` | dwindle: toggle split; scrolling: cycle column width presets |
+| `Mod+R` | dwindle: toggle split; scrolling: cycle column width presets; master: unbound |
 | `Mod+Ctrl+Space` | Toggle group |
 | `Mod+H/J/K/L`, `Mod+Left/Right` | Focus left/down/up/right |
 | `Mod+Tab`, `Mod+Shift+Tab` | Cycle to next/previous window |
@@ -164,26 +219,51 @@ must exist in exactly one of the files below.
 | `Mod+LMB` | Move window |
 | `Mod+RMB`, `Mod+Alt+LMB` | Resize window |
 
-**`config/plugins/hyprsplit.nix`** (when `hyprsplit.enable`)
+</details>
+
+<details>
+<summary><b>hyprsplit</b> — <code>config/plugins/hyprsplit.nix</code> (when <code>hyprsplit.enable</code>)</summary>
 
 | Keys | Action |
-|------|--------|
+| --- | --- |
 | `Mod+1…0`, `Mod+Shift+1…0` | This monitor's workspace 1–10, move window there silently |
 | `Mod+G` | Grab windows stranded on invalid workspaces |
 
-**`config/binds/screenshots.nix`, `config/binds/screenrecording.nix`**
+</details>
+
+<details>
+<summary><b>Screenshots and recording</b> — <code>config/binds/screenshots.nix</code>, <code>screenrecording.nix</code></summary>
 
 | Keys | Action |
-|------|--------|
+| --- | --- |
 | `Mod+Shift+S` | Screenshot menu |
 | `Mod+Ctrl+S` | Save and copy the active window |
 | `Mod+Ctrl+Shift+S` | Save and copy the focused monitor |
 | `Mod+Shift+R` | Recording menu |
 
-**`components/session/scratchpads.nix`**
+Screenshot menu:
+
+- `s` save to `~/Pictures/Screenshots/screenshot-<date>-<time>.png` and copy,
+  then pick a scope
+- `c` copy only, then pick a scope
+- `f` Flameshot GUI
+- `e` capture the focused monitor and crop it in Satty
+
+Scopes: `a` all monitors, `m` focused monitor, `w` active window, `r` region
+(slurp). The first three wait 0.8s for the menu to close.
+
+Recording menu: `a` focused monitor, `m` pick a monitor (wofi), `w` active
+window, `r` region (slurp), `q` stop. wl-screenrec writes
+`~/Videos/Recordings/recording-<date>-<time>.mp4` and notifies on start, and on
+save or failure.
+
+</details>
+
+<details>
+<summary><b>Scratchpads and minimize</b> — <code>components/session/scratchpads.nix</code></summary>
 
 | Keys | Action |
-|------|--------|
+| --- | --- |
 | `Mod+X` | Minimize the active window to `special:minimized`; on a special workspace, bring it back to the current one |
 | `Mod+Shift+X` | Same, floating the window before minimizing it |
 | `Mod+Ctrl+X` | Show/hide `special:minimized` |
@@ -191,21 +271,26 @@ must exist in exactly one of the files below.
 | `Mod+Ctrl+V` | Volume scratchpad (pwvucontrol) |
 | `Mod+S` | Scratchpad menu: `b` Bluetooth, `s` Ferdium, `n` Obsidian, `m` Messages, `w` WhatsApp, `g` Gemini |
 
-Scratchpads and minimize are plain Lua; pyprland is no longer used. A
-scratchpad starts its app if no window of its class is open, and otherwise
-toggles `special:<name>`. Every window of that class opens there, floating,
-centred and focused, with `special:<name>` shown, however it was launched.
+A scratchpad starts its app if no window of its class is open, and otherwise
+toggles `special:<name>`. Every window of that class opens there — floating,
+centred and focused — however it was launched.
 
-**`components/ui/workspaces/default.nix`**
+</details>
+
+<details>
+<summary><b>Workflows</b> — <code>components/ui/workspaces/default.nix</code></summary>
 
 | Keys | Action |
-|------|--------|
+| --- | --- |
 | `Mod+D` | `hyprflows` submap: `1` opens zen-beta on workspace 1, legcord and kitty on 11, code and kitty on 12; any other key leaves |
 
-**`components/ui/dms/default.nix`** (DMS only)
+</details>
+
+<details>
+<summary><b>DMS</b> — <code>components/ui/dms/default.nix</code> (DMS only)</summary>
 
 | Keys | Action |
-|------|--------|
+| --- | --- |
 | `Mod+Space` | Launcher |
 | `Mod+V` | Clipboard history |
 | `Mod+Comma` | DMS settings |
@@ -219,30 +304,15 @@ centred and focused, with `special:<name>` shown, however it was launched.
 | Play, Prev, Next, Mute, MicMute | Media and mute (also while locked) |
 | Volume and brightness keys | ±3% volume, ±5% brightness (repeat, also while locked) |
 
-### Screenshot menu (`Mod+Shift+S`)
+</details>
 
-- `s` save to `~/Pictures/Screenshots/screenshot-<date>-<time>.png` and copy,
-  then pick a scope
-- `c` copy only, then pick a scope
-- `f` Flameshot GUI
-- `e` capture the focused monitor and crop it in Satty
+<details>
+<summary><b>Differences from the niri keymap</b></summary>
 
-Scopes: `a` all monitors, `m` focused monitor, `w` active window, `r` region
-(slurp). The first three wait 0.8s for the menu to close.
-
-### Recording menu (`Mod+Shift+R`)
-
-`a` focused monitor, `m` pick a monitor (wofi), `w` active window, `r` region
-(slurp), `q` stop. wl-screenrec writes
-`~/Videos/Recordings/recording-<date>-<time>.mp4` and notifies on start, and on
-save or failure.
-
-### Unified keymap
-
-The binds mirror `flakes/niri`: the same HJKL layers (Mod focus, +Shift monitor,
-+Ctrl workspace, +Shift+Alt workspace to monitor), the same `W`/`Shift+W`/`Z`/`A`
-menus, the same `X`/`Shift+X`/`Ctrl+X` keys and the same screenshot and
-recording binds. Differences:
+The binds mirror `flakes/niri`: the same HJKL layers (Mod focus, +Shift
+monitor, +Ctrl workspace, +Shift+Alt workspace to monitor), the same
+`W`/`Shift+W`/`Z`/`A` menus, the same `X`/`Shift+X`/`Ctrl+X` keys and the same
+screenshot and recording binds. Differences:
 
 - Column widths, column moves and the swipe gestures match niri only with
   `layout = "scrolling"`. No dynamic cast
@@ -255,20 +325,28 @@ recording binds. Differences:
 - Recording keeps the `w` active-window scope, which niri cannot offer.
 - DMS binds are declared here. niri includes DMS's `dms/binds.kdl`; Hyprland
   would fire both copies of every duplicate, so `dms/binds.lua` is left out.
-- Hyprland-only: `Mod+P` pin, `Mod+R` split or width presets, `Mod+G` hyprsplit, the app
-  scratchpads (`Mod+S`, `Mod+Ctrl+T`, `Mod+Ctrl+V`) and `Mod+D` hyprflows.
+- Hyprland-only: `Mod+P` pin, `Mod+R` split or width presets, `Mod+G`
+  hyprsplit, the app scratchpads (`Mod+S`, `Mod+Ctrl+T`, `Mod+Ctrl+V`) and
+  `Mod+D` hyprflows.
 
-## Checking changes
+</details>
 
-`just check` runs `nix flake check`. The check evaluates a minimal NixOS system
-(home-manager `2c0350c`, the rev hosts use; one user; `hyprsplit.enable = true`;
-`pkgs.hello` for every app) and writes out only the toplevel `.drv` path, so
-nothing in the system gets built. It does not validate the Lua.
+## Development
+
+| Command | What it does |
+| --- | --- |
+| `nix fmt` | deadnix, statix, then alejandra via treefmt |
+| `just check` | `nix flake check --print-build-logs` |
+
+`checks.x86_64-linux.default` evaluates a minimal NixOS system (home-manager
+`2c0350c`, the rev hosts use; one user; `hyprsplit.enable = true`; `pkgs.hello`
+for every app) and writes out only the toplevel `.drv` path, so nothing in the
+system gets built. It does not validate the Lua.
 
 To validate the rendered Lua against the compositor that will run it, copy the
 config into a real directory first. `-c` resolves symlinks, and the
 home-manager files point into `/nix/store`, where `require()` would not find
-the other files.
+the other files:
 
 ```sh
 d=$(mktemp -d)
@@ -279,3 +357,7 @@ XDG_CONFIG_HOME="$d" Hyprland --verify-config -c "$d/hypr/hyprland.lua"
 It prints `config ok`. Outside a session, also set
 `XDG_RUNTIME_DIR=$(mktemp -d)`; Hyprland exits without one. The check catches
 unknown keys, fields and dispatcher arguments, not runtime behaviour.
+
+After a change to this subflake's files, commit here; after a change to its
+inputs, also run `nix flake update hyprland` in the root repo, since hosts
+build the root lock's pins.
